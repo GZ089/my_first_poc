@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Officer Portal — Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;color:#172033;font:14px Arial}
+body[dir="rtl"]{font-family:"Noto Nastaliq Urdu","Segoe UI",Tahoma,Arial,sans-serif}
+header{background:#111827;color:white;padding:14px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:36px;width:auto;background:#fff;padding:3px 6px;border-radius:6px}
+.brand b{font-size:16px}
+.headright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+main{max-width:1200px;margin:25px auto;padding:0 15px}
+.card{background:white;padding:20px;border-radius:12px;margin-bottom:18px;box-shadow:0 2px 8px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:13px;margin-bottom:10px;color:#475569;font-weight:600}
+input,select,button{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:7px;font:inherit;margin-top:5px}
+input:focus,select:focus{outline:2px solid #2563eb;border-color:#2563eb}
+button{background:#2563eb;color:white;border:0;font-weight:bold;cursor:pointer}
+button:hover:not(:disabled){background:#1d4ed8}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:#475569}
+button.danger{background:#dc2626}
+button.small{width:auto;padding:7px 11px;margin:2px;font-size:13px}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:12px 0}
+.parts label{display:flex;align-items:center;gap:6px;font-weight:normal}
+.parts input{width:auto;margin:0}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+body[dir="rtl"] th,body[dir="rtl"] td{text-align:right}
+th{background:#f9fafb;white-space:nowrap;font-size:13px}
+.wrap{overflow-x:auto}
+.msg{margin-top:12px;white-space:pre-wrap;font-weight:600}
+.note{color:#64748b;line-height:1.6;font-size:12px}
+.hidden{display:none!important}
+.badge{display:inline-block;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.badge.active{background:#d1fae5;color:#065f46}
+.badge.inactive{background:#fee2e2;color:#991b1b}
+.badge.progress{background:#dbeafe;color:#1e40af}
+.badge.returned{background:#fef3c7;color:#92400e}
+.badge.rejected{background:#fee2e2;color:#991b1b}
+.badge.completed{background:#d1fae5;color:#065f46}
+.next-action{background:#fef9c3;padding:3px 7px;border-radius:5px;font-size:12px;line-height:1.4;display:inline-block}
+.next-action b{color:#92400e}
+.filterbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filterbar input,.filterbar select{width:auto;flex:1;min-width:140px;margin:0}
+.filterbar button{width:auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.stats .stat{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-left:4px solid #2563eb;padding:14px;border-radius:8px}
+body[dir="rtl"] .stats .stat{border-left:none;border-right:4px solid #2563eb}
+.stats .stat strong{font-size:22px;display:block;color:#1e40af;margin-bottom:4px}
+.stats .stat span{font-size:12px;color:#475569;font-weight:600}
+.media-indicator{font-size:11px;color:#2563eb;margin-left:4px}
+@media(max-width:600px){.card{padding:13px}header{padding:12px}th,td{padding:8px;font-size:13px}.brand b{font-size:14px}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="Logo.png" alt="Logo" onerror="this.style.display='none'">
+    <b data-i18n="appTitle">Officer Portal — Admin Panel</b>
+  </div>
+  <div class="headright">
+    <select id="langSel" onchange="setLang(this.value)" style="width:auto;margin:0;padding:7px 11px">
+      <option value="en">English</option>
+      <option value="ur">اردو</option>
+    </select>
+    <button id="logout" class="secondary hidden" style="width:auto" data-i18n="logout">Logout</button>
+  </div>
+</header>
+
+<main>
+  <section id="loginCard" class="card">
+    <h2 data-i18n="loginH2">Administrator Login</h2>
+    <p class="note" data-i18n="loginNote">Sign in with the SSO or Admin account created on the main portal.</p>
+    <form id="loginForm">
+      <label><span data-i18n="username">Username</span>
+        <input id="loginUser" required autocomplete="username">
+      </label>
+      <label><span data-i18n="password">Password</span>
+        <input id="loginPass" type="password" required autocomplete="current-password">
+      </label>
+      <button data-i18n="login">Login</button>
+    </form>
+    <div id="loginMsg" class="msg"></div>
+    <p class="note" data-i18n="noDefault">No default administrator exists. Create the first SSO account on index.html.</p>
+  </section>
+
+  <div id="adminArea" class="hidden">
+
+    <section class="card hidden" id="ssoStatsCard">
+      <h2 data-i18n="statsH2">System Overview (SSO only)</h2>
+      <div class="stats">
+        <div class="stat"><strong id="ssoTotal">0</strong><span data-i18n="totalReq">Total Requests</span></div>
+        <div class="stat"><strong id="ssoApproved">0</strong><span data-i18n="totalApproved">Total Approved (Rs.)</span></div>
+        <div class="stat"><strong id="ssoSpent">0</strong><span data-i18n="totalSpent">Total Spent (Rs.)</span></div>
+        <div class="stat"><strong id="ssoRemaining">0</strong><span data-i18n="totalRemaining">Total Remaining (Rs.)</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="addOfficer">Add Officer</h2>
+      <form id="userForm">
+        <div class="grid">
+          <label><span data-i18n="fullName">Full Name</span>
+            <input id="name" required maxlength="100">
+          </label>
+          <label><span data-i18n="username2">Username</span>
+            <input id="username" required minlength="3" maxlength="40"
+              pattern="[A-Za-z0-9._-]+" autocomplete="off">
+          </label>
+          <label><span data-i18n="passwordMin8">Password (min 8)</span>
+            <input id="password" type="password" required minlength="8">
+          </label>
+          <label><span data-i18n="contact">Contact (phone / email)</span>
+            <input id="contact" required maxlength="120" placeholder="9876543210 / name@example.com">
+          </label>
+          <label><span data-i18n="deptRole">Department / Role</span>
+            <select id="dept">
+              <option value="general" data-i18n="general">General / User</option>
+              <option value="deputy_admin" data-i18n="deputy">Deputy Admin</option>
+              <option value="part4" data-i18n="cfa">CFA</option>
+              <option value="part5" data-i18n="hq">HQ</option>
+              <option value="part6" data-i18n="ge">GE</option>
+            </select>
+          </label>
+        </div>
+
+        <p><b data-i18n="permParts">Permitted performa parts</b></p>
+        <div class="parts">
+          <label><input type="checkbox" name="parts" value="part1"> Part-I</label>
+          <label><input type="checkbox" name="parts" value="part2"> Part-II</label>
+          <label><input type="checkbox" name="parts" value="part3"> Part-III</label>
+          <label><input type="checkbox" name="parts" value="part4"> Part-IV</label>
+          <label><input type="checkbox" name="parts" value="part5"> Part-V</label>
+          <label><input type="checkbox" name="parts" value="part6"> Part-VI</label>
+          <label><input type="checkbox" name="parts" value="part7"> Part-VII</label>
+        </div>
+
+        <button data-i18n="createOfficer">Create Officer</button>
+      </form>
+      <div id="userMsg" class="msg"></div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="registered">Registered Accounts</h2>
+      <p class="note" data-i18n="storedServer">All accounts are stored server-side in MySQL.</p>
+      <div class="filterbar">
+        <input id="userSearch" placeholder="Search name / username" data-i18n-ph="searchUser">
+        <select id="userDeptFilter">
+          <option value="" data-i18n="allDepts">All departments</option>
+          <option value="general">General</option>
+          <option value="deputy_admin">Deputy Admin</option>
+          <option value="part4">CFA</option>
+          <option value="part5">HQ</option>
+          <option value="part6">GE</option>
+        </select>
+        <button class="secondary" id="refreshUsers" data-i18n="refresh">Refresh</button>
+      </div>
+      <div class="wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="name">Name</th>
+              <th data-i18n="username2">Username</th>
+              <th data-i18n="contact">Contact</th>
+              <th data-i18n="department">Department</th>
+              <th data-i18n="parts">Parts</th>
+              <th data-i18n="status">Status</th>
+              <th data-i18n="action">Action</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="requestsCard">
+      <h2 data-i18n="requestsOverview">All Requests (SSO only)</h2>
+      <p class="note" data-i18n="requestsNote">Every request with status highlight + next action user contact.</p>
+      <div class="filterbar">
+        <input id="filterSearch" placeholder="Search ID / title / initiator" data-i18n-ph="search">
+        <select id="filterStatus">
+          <option value="" data-i18n="allStatuses">All statuses</option>
+          <option value="In Progress" data-i18n="inProgress">In Progress</option>
+          <option value="Returned" data-i18n="returned">Returned</option>
+          <option value="Rejected" data-i18n="rejected">Rejected</option>
+          <option value="Completed" data-i18n="completed">Completed</option>
+        </select>
+        <input id="filterFrom" type="date" title="From date">
+        <input id="filterTo" type="date" title="To date">
+        <button id="refreshReq" class="secondary" data-i18n="refresh">Refresh</button>
+      </div>
+      <div class="wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="id">ID</th>
+              <th data-i18n="title">Title</th>
+              <th data-i18n="initiator">Initiator</th>
+              <th data-i18n="currentStage">Stage</th>
+              <th data-i18n="status">Status</th>
+              <th data-i18n="nextActionBy">Next action by</th>
+              <th data-i18n="updated">Updated</th>
+            </tr>
+          </thead>
+          <tbody id="reqTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="workflowSeq">Workflow Sequence</h2>
+      <p class="note" data-i18n="workflowNote">Enter stages separated by commas. Valid stages: part1..part7, deputy_return.</p>
+      <label><span data-i18n="stageSeq">Stage sequence</span>
+        <input id="workflow" value="part1,part2,part3,part4,deputy_return,part5,part6,part7">
+      </label>
+      <button id="saveWorkflow" data-i18n="saveWorkflow">Save Workflow</button>
+      <div id="workflowMsg" class="msg"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+"use strict";
+
+/* ==================== i18n ==================== */
+const I18N = {
+  en: {
+    appTitle:'Officer Portal — Admin Panel', loginH2:'Administrator Login',
+    loginNote:'Sign in with the SSO or Admin account created on the main portal.',
+    username:'Username', password:'Password', login:'Login', logout:'Logout',
+    noDefault:'No default administrator exists. Create the first SSO account on index.html.',
+    addOfficer:'Add Officer', fullName:'Full Name', contact:'Contact (phone / email)',
+    deptRole:'Department / Role', general:'General / User', deputy:'Deputy Admin',
+    cfa:'CFA', hq:'HQ', ge:'GE', permParts:'Permitted performa parts',
+    createOfficer:'Create Officer', registered:'Registered Accounts',
+    storedServer:'All accounts are stored server-side in MySQL.',
+    name:'Name', username2:'Username', department:'Department', parts:'Parts',
+    status:'Status', action:'Action', active:'Active', inactive:'Inactive',
+    currentAdmin:'Current Admin', deactivate:'Deactivate', activate:'Activate',
+    resetPw:'Reset Password', workflowSeq:'Workflow Sequence',
+    workflowNote:'Enter stages separated by commas. Valid stages: part1..part7, deputy_return.',
+    stageSeq:'Stage sequence', saveWorkflow:'Save Workflow',
+    requestsOverview:'All Requests (SSO only)',
+    requestsNote:'Every request with status highlight + next action user contact.',
+    id:'ID', title:'Title', initiator:'Initiator', currentStage:'Stage',
+    nextActionBy:'Next action by', updated:'Updated', refresh:'Refresh',
+    search:'Search ID / title / initiator', searchUser:'Search name / username',
+    allStatuses:'All statuses', inProgress:'In Progress', returned:'Returned',
+    rejected:'Rejected', completed:'Completed', allDepts:'All departments',
+    statsH2:'System Overview (SSO only)', totalReq:'Total Requests',
+    totalApproved:'Total Approved (Rs.)', totalSpent:'Total Spent (Rs.)',
+    totalRemaining:'Total Remaining (Rs.)', passwordMin8:'Password (min 8)',
+    selectAtLeastOne:'Select at least one performa part.',
+    officerCreated:'Officer created successfully.',
+    workflowSaved:'Workflow saved.',
+    pwTooShort:'Password must be at least 8 characters.',
+    userExists:'Username already exists.',
+    noContact:'Contact is required.',
+  },
+  ur: {
+    appTitle:'آفیسر پورٹل — ایڈمن پینل', loginH2:'ایڈمنسٹریٹر لاگ ان',
+    loginNote:'مرکزی پورٹل پر بنائے گئے SSO یا ایڈمن اکاؤنٹ سے سائن ان کریں۔',
+    username:'یوزر نیم', password:'پاس ورڈ', login:'لاگ ان', logout:'لاگ آؤٹ',
+    noDefault:'کوئی ڈیفالٹ ایڈمن نہیں ہے۔ index.html پر پہلا SSO اکاؤنٹ بنائیں۔',
+    addOfficer:'آفیسر شامل کریں', fullName:'پورا نام', contact:'رابطہ (فون / ای میل)',
+    deptRole:'شعبہ / کردار', general:'جنرل / صارف', deputy:'ڈپٹی ایڈمن',
+    cfa:'CFA', hq:'HQ', ge:'GE', permParts:'اجازت شدہ پرفارما حصے',
+    createOfficer:'آفیسر بنائیں', registered:'رجسٹرڈ اکاؤنٹس',
+    storedServer:'تمام اکاؤنٹس سرور پر MySQL میں محفوظ ہیں۔',
+    name:'نام', username2:'یوزر نیم', department:'شعبہ', parts:'حصے',
+    status:'حالت', action:'کارروائی', active:'فعال', inactive:'غیر فعال',
+    currentAdmin:'موجودہ ایڈمن', deactivate:'غیر فعال کریں', activate:'فعال کریں',
+    resetPw:'پاس ورڈ ری سیٹ', workflowSeq:'ورک فلو ترتیب',
+    workflowNote:'مراحل کو کوما سے الگ کریں۔ درست: part1..part7, deputy_return۔',
+    stageSeq:'مرحلہ ترتیب', saveWorkflow:'ورک فلو محفوظ کریں',
+    requestsOverview:'تمام درخواستیں (صرف SSO)',
+    requestsNote:'ہر درخواست حالت ہائی لائٹ اور اگلے عمل والے کا رابطہ کے ساتھ۔',
+    id:'آئی ڈی', title:'عنوان', initiator:'شروع کرنے والا', currentStage:'مرحلہ',
+    nextActionBy:'اگلا عمل کس کا', updated:'اپ ڈیٹ', refresh:'ریفریش',
+    search:'آئی ڈی / عنوان / شروع کرنے والا تلاش کریں', searchUser:'نام / یوزر نیم تلاش کریں',
+    allStatuses:'تمام حالتیں', inProgress:'جاری', returned:'واپس شدہ',
+    rejected:'مسترد', completed:'مکمل', allDepts:'تمام شعبے',
+    statsH2:'سسٹم کا جائزہ (صرف SSO)', totalReq:'کل درخواستیں',
+    totalApproved:'کل منظور شدہ (روپے)', totalSpent:'کل خرچ شدہ (روپے)',
+    totalRemaining:'کل باقی (روپے)', passwordMin8:'پاس ورڈ (کم از کم 8)',
+    selectAtLeastOne:'کم از کم ایک حصہ منتخب کریں۔',
+    officerCreated:'آفیسر کامیابی سے بنا۔',
+    workflowSaved:'ورک فلو محفوظ ہو گیا۔',
+    pwTooShort:'پاس ورڈ کم از کم 8 حروف کا ہونا چاہیے۔',
+    userExists:'یوزر نیم پہلے سے موجود ہے۔',
+    noContact:'رابطہ لازمی ہے۔',
+  }
+};
+
+let currentLang = 'en';
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || key; }
+function applyLang(){
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = currentLang === 'ur' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.getElementById('langSel').value = currentLang;
+}
+function setLang(lang){
+  currentLang = lang === 'ur' ? 'ur' : 'en';
+  document.cookie = 'pref_lang=' + currentLang + ';path=/officer/;max-age=31536000';
+  applyLang();
+  if (currentAdmin) { renderUsers(); renderRequests(); }
+}
+function loadLangFromCookie(){
+  const m = document.cookie.match(/(?:^|;\s*)pref_lang=([^;]+)/);
+  currentLang = m && m[1] === 'ur' ? 'ur' : 'en';
+  applyLang();
+}
+
+/* ==================== API ==================== */
+const API = 'api/index.php';
+const $ = id => document.getElementById(id);
+let csrfToken = '';
+let currentAdmin = null;
+let allUsers = [];
+let allRequests = [];
+
+async function apiCall(path, opts = {}){
+  const cfg = {
+    credentials: 'same-origin',
+    method: opts.method || 'GET',
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+  };
+  if (cfg.method !== 'GET' && csrfToken) cfg.headers['X-CSRF-Token'] = csrfToken;
+  if (opts.body !== undefined) cfg.body = typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body);
+  const res = await fetch(API + path, cfg);
+  let data = {};
+  try { data = await res.json(); } catch (_) {}
+  if (data._csrf) csrfToken = data._csrf;
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+function showMessage(id, text, ok = false){
+  const el = $(id); el.textContent = text; el.style.color = ok ? '#15803d' : '#dc2626';
+}
+
+function fmtMoney(n){ return Math.round(Number(n) || 0).toLocaleString(); }
+function fmtDate(d){
+  if (!d) return '—';
+  try { return new Date(d).toLocaleString(); } catch(_) { return d; }
+}
+
+/* ==================== Bootstrap ==================== */
+async function bootstrap(){
+  try {
+    const status = await apiCall('?action=setup-status');
+    if (status.needsSetup){
+      showMessage('loginMsg', 'No accounts yet. Complete setup on index.html first.');
+      $('loginForm').querySelector('button').disabled = true;
+      return;
+    }
+    try {
+      const me = await apiCall('?action=me');
+      currentAdmin = me.user;
+      if (!['admin', 'sso'].includes(currentAdmin.role)){
+        await apiCall('?action=logout', { method: 'POST' }).catch(() => {});
+        showMessage('loginMsg', 'This account cannot access the admin panel.');
+        return;
+      }
+      enterAdminArea();
+    } catch(_){}
+  } catch(e){ showMessage('loginMsg', 'Error: ' + e.message); }
+}
+
+function enterAdminArea(){
+  $('loginCard').classList.add('hidden');
+  $('adminArea').classList.remove('hidden');
+  $('logout').classList.remove('hidden');
+
+  if (currentAdmin.role === 'sso'){
+    $('ssoStatsCard').classList.remove('hidden');
+    $('requestsCard').classList.remove('hidden');
+    loadStats();
+    renderRequests();
+  } else {
+    $('ssoStatsCard').classList.add('hidden');
+    $('requestsCard').classList.add('hidden');
+  }
+
+  renderUsers();
+  loadWorkflow();
+}
+
+/* ==================== Login / logout ==================== */
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    const res = await apiCall('?action=login', {
+      method: 'POST',
+      body: { username: $('loginUser').value.trim().toLowerCase(), password: $('loginPass').value }
+    });
+    if (!['admin', 'sso'].includes(res.user.role)){
+      await apiCall('?action=logout', { method: 'POST' }).catch(() => {});
+      throw new Error('This account cannot access the admin panel.');
+    }
+    currentAdmin = res.user;
+    $('loginPass').value = '';
+    showMessage('loginMsg', 'Login successful.', true);
+    enterAdminArea();
+  } catch(err){ showMessage('loginMsg', err.message || 'Login failed.'); }
+});
+
+$('logout').addEventListener('click', async () => {
+  try { await apiCall('?action=logout', { method: 'POST' }); } catch(_){}
+  currentAdmin = null;
+  $('adminArea').classList.add('hidden');
+  $('loginCard').classList.remove('hidden');
+  $('logout').classList.add('hidden');
+  showMessage('loginMsg', '');
+});
+
+/* ==================== Create officer ==================== */
+$('userForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!currentAdmin) return;
+  try {
+    const username = $('username').value.trim().toLowerCase();
+    const password = $('password').value;
+    const name = $('name').value.trim();
+    const contact = $('contact').value.trim();
+    const dept = $('dept').value;
+    const allowedParts = [...document.querySelectorAll('input[name="parts"]:checked')].map(el => el.value);
+
+    if (!/^[a-z0-9._-]{3,40}$/.test(username)) throw new Error('Username: 3–40 letters/numbers/._-');
+    if (password.length < 8) throw new Error(t('pwTooShort'));
+    if (!contact) throw new Error(t('noContact'));
+    if (!allowedParts.length) throw new Error(t('selectAtLeastOne'));
+
+    await apiCall('?action=users', {
+      method: 'POST',
+      body: { username, password, name, contact, dept, role: 'officer', designation: dept, allowedParts }
+    });
+    $('userForm').reset();
+    showMessage('userMsg', t('officerCreated'), true);
+    renderUsers();
+    if (currentAdmin.role === 'sso') loadStats();
+  } catch(err){ showMessage('userMsg', err.message || 'Could not create officer.'); }
+});
+
+/* ==================== Users list ==================== */
+async function renderUsers(){
+  try {
+    const { users } = await apiCall('?action=users');
+    allUsers = users || [];
+    const q = $('userSearch').value.toLowerCase().trim();
+    const deptF = $('userDeptFilter').value;
+
+    let list = allUsers;
+    if (q) list = list.filter(u => (u.name + ' ' + u.username + ' ' + (u.contact||'')).toLowerCase().includes(q));
+    if (deptF) list = list.filter(u => u.dept === deptF);
+
+    const tbody = $('usersTable');
+    tbody.replaceChildren();
+
+    list.forEach(user => {
+      const tr = document.createElement('tr');
+      const permitted = (user.allowedParts || []).map(p => 'Part-' + p.replace('part','')).join(', ') || '—';
+
+      [user.name, user.username, user.contact || '—', user.dept, permitted].forEach(v => {
+        const td = document.createElement('td'); td.textContent = v || '—'; tr.appendChild(td);
+      });
+
+      const tdStatus = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = 'badge ' + (user.active ? 'active' : 'inactive');
+      badge.textContent = user.active ? t('active') : t('inactive');
+      tdStatus.appendChild(badge);
+      tr.appendChild(tdStatus);
+
+      const tdAct = document.createElement('td');
+      if (user.username !== currentAdmin.username){
+        const btn = document.createElement('button');
+        btn.className = 'small ' + (user.active ? 'danger' : 'secondary');
+        btn.textContent = user.active ? t('deactivate') : t('activate');
+        btn.onclick = async () => {
+          try {
+            await apiCall('?action=user&username=' + encodeURIComponent(user.username) + '&op=toggle', { method: 'POST' });
+            renderUsers();
+          } catch(e){ alert(e.message); }
+        };
+        tdAct.appendChild(btn);
+
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'small secondary';
+        resetBtn.textContent = t('resetPw');
+        resetBtn.onclick = async () => {
+          const pw = prompt('New password for ' + user.username + ' (min 8):');
+          if (pw === null) return;
+          if (pw.length < 8) return alert(t('pwTooShort'));
+          try {
+            await apiCall('?action=user&username=' + encodeURIComponent(user.username) + '&op=reset-password', {
+              method: 'POST', body: { password: pw }
+            });
+            alert('Password reset.');
+          } catch(e){ alert(e.message); }
+        };
+        tdAct.appendChild(resetBtn);
+      } else {
+        tdAct.textContent = t('currentAdmin');
+      }
+      tr.appendChild(tdAct);
+      tbody.appendChild(tr);
+    });
+
+    if (!list.length){
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 7; td.style.textAlign = 'center'; td.style.padding = '20px'; td.style.color = '#64748b';
+      td.textContent = 'No users match the filter.';
+      tr.appendChild(td); tbody.appendChild(tr);
+    }
+  } catch(err){ showMessage('userMsg', err.message); }
+}
+
+$('userSearch').addEventListener('input', renderUsers);
+$('userDeptFilter').addEventListener('change', renderUsers);
+$('refreshUsers').addEventListener('click', () => { renderUsers(); if (currentAdmin?.role === 'sso') loadStats(); });
+
+/* ==================== Requests (SSO only) ==================== */
+async function renderRequests(){
+  if (!currentAdmin || currentAdmin.role !== 'sso') return;
+  try {
+    const status = $('filterStatus').value;
+    const q = $('filterSearch').value.trim();
+    const from = $('filterFrom').value;
+    const to = $('filterTo').value;
+    const params = new URLSearchParams({ limit: '500' });
+    if (status) params.set('status', status);
+    if (q) params.set('q', q);
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+
+    const data = await apiCall('?action=requests&' + params.toString());
+    allRequests = data.requests || [];
+    const tbody = $('reqTable');
+    tbody.replaceChildren();
+
+    allRequests.forEach(r => {
+      const tr = document.createElement('tr');
+
+      const tdId = document.createElement('td');
+      const strong = document.createElement('b'); strong.textContent = r.id;
+      tdId.appendChild(strong);
+      tr.appendChild(tdId);
+
+      const tdTitle = document.createElement('td');
+      tdTitle.textContent = r.title || '—';
+      tr.appendChild(tdTitle);
+
+      const tdInit = document.createElement('td');
+      tdInit.textContent = r.initiatedBy;
+      tr.appendChild(tdInit);
+
+      const tdStep = document.createElement('td');
+      tdStep.textContent = r.currentStep || '—';
+      tr.appendChild(tdStep);
+
+      const tdStat = document.createElement('td');
+      const badge = document.createElement('span');
+      const st = r.status || 'In Progress';
+      badge.className = 'badge ' + (
+        st === 'Completed' ? 'completed' :
+        st === 'Rejected' ? 'rejected' :
+        st === 'Returned' ? 'returned' : 'progress'
+      );
+      badge.textContent = st;
+      tdStat.appendChild(badge);
+      tr.appendChild(tdStat);
+
+      const tdNext = document.createElement('td');
+      if (r.nextActionBy){
+        const span = document.createElement('span');
+        span.className = 'next-action';
+        const b = document.createElement('b');
+        b.textContent = r.nextActionBy.name || r.nextActionBy.username;
+        span.appendChild(b);
+        if (r.nextActionBy.contact){
+          span.appendChild(document.createTextNode(' · ' + r.nextActionBy.contact));
+        }
+        tdNext.appendChild(span);
+      } else {
+        tdNext.textContent = '—';
+      }
+      tr.appendChild(tdNext);
+
+      const tdUp = document.createElement('td');
+      tdUp.textContent = r.updatedAt ? fmtDate(r.updatedAt) : '—';
+      tr.appendChild(tdUp);
+
+      tbody.appendChild(tr);
+    });
+
+    if (!allRequests.length){
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 7; td.style.textAlign = 'center'; td.style.padding = '20px'; td.style.color = '#64748b';
+      td.textContent = 'No requests found.';
+      tr.appendChild(td); tbody.appendChild(tr);
+    }
+  } catch(err){ console.error(err); }
+}
+
+$('refreshReq').addEventListener('click', renderRequests);
+$('filterSearch').addEventListener('input', () => {
+  clearTimeout(window.__searchTimer);
+  window.__searchTimer = setTimeout(renderRequests, 300);
+});
+$('filterStatus').addEventListener('change', renderRequests);
+$('filterFrom').addEventListener('change', renderRequests);
+$('filterTo').addEventListener('change', renderRequests);
+
+/* ==================== Stats ==================== */
+async function loadStats(){
+  try {
+    const s = await apiCall('?action=stats');
+    $('ssoTotal').textContent = s.total || 0;
+    $('ssoApproved').textContent = fmtMoney(s.totalApproved);
+    $('ssoSpent').textContent = fmtMoney(s.totalSpent);
+    $('ssoRemaining').textContent = fmtMoney(s.totalRemaining);
+  } catch(err){ console.error('Stats:', err); }
+}
+
+/* ==================== Workflow ==================== */
+async function loadWorkflow(){
+  try {
+    const data = await apiCall('?action=settings');
+    if (data.workflow && Array.isArray(data.workflow.order)){
+      $('workflow').value = data.workflow.order.join(',');
+    }
+  } catch(_){}
+}
+
+$('saveWorkflow').addEventListener('click', async () => {
+  if (!currentAdmin) return;
+  const order = $('workflow').value.split(',').map(s => s.trim()).filter(Boolean);
+  const allowed = ['part1','part2','part3','part4','part5','part6','part7','deputy_return'];
+  if (!order.length || order.some(s => !allowed.includes(s)) || new Set(order).size !== order.length){
+    showMessage('workflowMsg', 'Invalid stages or duplicates.');
+    return;
+  }
+  try {
+    await apiCall('?action=settings', { method: 'PUT', body: { order } });
+    showMessage('workflowMsg', t('workflowSaved'), true);
+  } catch(err){ showMessage('workflowMsg', err.message); }
+});
+
+/* ==================== Init ==================== */
+loadLangFromCookie();
+bootstrap();
+</script>
+</body>
+</html>

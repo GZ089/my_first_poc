@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performa Workflow Management</title>
+<style>
+:root{--nav:#111827;--blue:#2563eb;--bg:#f3f4f6;--line:#e5e7eb;--muted:#6b7280;--green:#059669;--red:#dc2626;--amber:#d97706}
+*{box-sizing:border-box}
+body{margin:0;font:14px "Segoe UI",Tahoma,sans-serif;background:var(--bg);color:#1f2937}
+body[dir="rtl"]{font-family:"Noto Nastaliq Urdu","Segoe UI",Tahoma,Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{border:0;border-radius:6px;padding:9px 13px;cursor:pointer;font-weight:600}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:6px;background:white}
+textarea{min-height:80px;resize:vertical}
+.primary{background:var(--blue);color:#fff}.success{background:var(--green);color:#fff}.danger{background:var(--red);color:#fff}.warning{background:#f59e0b;color:#111827}.secondary{background:#e5e7eb;color:#111827}
+.muted{color:var(--muted)}.hidden{display:none!important}
+.app{min-height:100vh;display:flex}
+.sidebar{width:245px;flex-shrink:0;background:var(--nav);color:white;display:flex;flex-direction:column}
+.brand{padding:14px 18px;font-size:16px;font-weight:800;border-bottom:1px solid #374151;display:flex;align-items:center;gap:10px}
+.brand img{height:32px;width:auto;background:#fff;padding:2px 6px;border-radius:5px}
+.nav{padding:12px 0;flex:1}
+.nav button{width:100%;text-align:left;border-radius:0;background:transparent;color:#d1d5db;padding:13px 20px;font-weight:500}
+body[dir="rtl"] .nav button{text-align:right}
+.nav button:hover,.nav button.active{background:#1f2937;color:#fff;border-left:4px solid #60a5fa}
+body[dir="rtl"] .nav button.active{border-left:none;border-right:4px solid #60a5fa}
+.sidefoot{padding:16px;border-top:1px solid #374151}
+.main{flex:1;min-width:0;overflow:auto}
+.topbar{background:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 3px #0001;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.content{padding:24px;max-width:1500px;margin:auto}
+.view{display:none}.view.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:20px}
+.card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px #0001;margin-bottom:18px;min-width:0}
+.stat{border-left:4px solid var(--blue)}
+body[dir="rtl"] .stat{border-left:none;border-right:4px solid var(--blue)}
+.stat strong{font-size:26px;display:block;margin-bottom:4px}
+.cardhead{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px;font-size:16px;font-weight:700;flex-wrap:wrap}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tablewrap{overflow:auto}
+table{width:100%;border-collapse:collapse;background:white}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+body[dir="rtl"] th,body[dir="rtl"] td{text-align:right}
+th{background:#f9fafb;white-space:nowrap}
+.badge{display:inline-block;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.badge.progress{background:#dbeafe;color:#1e40af}
+.badge.returned{background:#fef3c7;color:#92400e}
+.badge.rejected{background:#fee2e2;color:#991b1b}
+.badge.completed{background:#d1fae5;color:#065f46}
+.next-action{background:#fef9c3;padding:4px 8px;border-radius:5px;font-size:12px;line-height:1.5;display:inline-block}
+.next-action b{color:#92400e}
+.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field label{display:block;font-weight:600;font-size:12px;margin-bottom:5px}
+.login-screen{position:fixed;inset:0;background:#eef2f7;display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}
+.loginbox{background:white;width:100%;max-width:420px;padding:30px;border-radius:14px;box-shadow:0 16px 45px #0002;max-height:95vh;overflow-y:auto}
+.loginbox h1{font-size:24px;margin:0 0 8px}
+.loginbox .field{margin:14px 0}
+.loginbox .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.loginbox .logo-row img{height:40px}
+.notice{padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12px;line-height:1.5;margin-top:14px}
+.editorbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:12px;background:white;border-bottom:1px solid var(--line)}
+.editor-status{background:#fff;padding:10px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px}
+.performa-container{background:#d1d5db;padding:18px;overflow:auto}
+.page{width:210mm;min-height:297mm;padding:15mm;margin:auto;background:white;box-shadow:0 3px 14px #0002;font-size:12px;color:#111}
+.header{text-align:center;margin-bottom:24px}
+.header h2{font-size:16px;line-height:1.4}
+.part{text-align:center;font-size:14px;font-weight:bold;margin:18px 0 3px}
+.subtitle{text-align:center;font-style:italic;margin-bottom:13px}
+.row{display:flex;align-items:flex-end;gap:5px;margin-bottom:6px;min-height:25px}
+.label{white-space:nowrap}
+.line{flex:1;min-width:20px;min-height:20px;border-bottom:1px solid #333;padding:2px 4px;outline:none}
+.num{width:20px;text-align:right;flex-shrink:0}
+.desc-list{display:flex;flex-direction:column;gap:4px;flex:1}
+.desc-item{display:flex;align-items:flex-end;gap:5px}
+.form-table{width:100%;border-collapse:collapse;margin:10px 0 15px;font-size:12px}
+.form-table th,.form-table td{border:1px solid #333;padding:6px 8px;vertical-align:top}
+.form-table th{background:white}
+.signature-section{display:flex;justify-content:flex-end;align-items:flex-end;margin:25px 0 18px}
+body[dir="rtl"] .signature-section{justify-content:flex-start}
+.sigwrap{width:70mm;display:flex;align-items:flex-end;gap:5px}
+.sig-box{height:40px;flex:1;min-width:20px;border-bottom:1px solid #333;position:relative;cursor:pointer}
+.sig-box canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.sig-box .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;pointer-events:none}
+.sig-box.locked{background:#f3f4f6;cursor:not-allowed;pointer-events:none}
+.datefield{width:125px!important;border:0;border-bottom:1px solid #333;border-radius:0;padding:2px;background:transparent}
+.funds{display:flex;justify-content:space-between;margin:10px 0 15px 27px;padding-right:50px;gap:18px}
+.funds-list,.funds-amounts{display:flex;flex-direction:column;gap:8px}
+.funds-amounts{width:200px}
+.amount-line{display:flex;align-items:flex-end;gap:8px}
+.footer-note{font-size:11px;font-weight:bold;line-height:1.4;margin-top:28px}
+.form-part{margin-bottom:12px}
+.editable-locked{background:#f3f4f6!important;color:#6b7280!important}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:11px 18px;background:#111827;color:white;border-radius:7px;opacity:0;pointer-events:none;transition:.2s;z-index:3000}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:#0009;z-index:2000;display:none;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.modalbox{background:white;width:100%;max-width:640px;border-radius:10px;overflow:hidden}
+.modalhead,.modalfoot{padding:14px 18px;background:#f9fafb;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.modalbody{padding:16px}
+.sigcanvaswrap{height:240px;position:relative;background-color:#f8fafc;background-image:linear-gradient(#ddd 1px,transparent 1px),linear-gradient(90deg,#ddd 1px,transparent 1px);background-size:20px 20px;touch-action:none}
+.sigcanvaswrap canvas{width:100%;height:100%;display:block;touch-action:none}
+.small{font-size:12px}.empty{text-align:center;padding:24px;color:var(--muted)}
+.mobile-menu{display:none}
+.media-section{background:#fff;padding:20px;margin:0;border-top:1px solid var(--line)}
+.media-grid{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.media-thumb{width:90px;height:90px;background:#f1f5f9;border-radius:8px;overflow:hidden;position:relative;cursor:pointer;border:2px solid #e2e8f0}
+.media-thumb:hover{border-color:#2563eb}
+.media-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.media-thumb .video-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;background:#000a}
+.media-thumb .media-del{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:#dc2626;color:#fff;padding:0;line-height:1;font-size:16px;font-weight:bold}
+.preview-popup{position:fixed;z-index:4000;max-width:420px;max-height:320px;background:#000;padding:4px;border-radius:8px;pointer-events:none;display:none;box-shadow:0 6px 20px #0005}
+.preview-popup.show{display:block}
+.preview-popup img{max-width:100%;max-height:312px;display:block;border-radius:5px}
+.preview-popup video{max-width:100%;max-height:312px;display:block;border-radius:5px}
+.filterbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filterbar input,.filterbar select{width:auto;flex:1;min-width:140px}
+.stats-sso{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.stats-sso .card{padding:14px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-left:4px solid #2563eb}
+.stats-sso .card strong{font-size:22px;display:block}
+.stats-sso .card span{font-size:12px;color:#475569}
+.status-pill{display:inline-block;padding:6px 12px;border-radius:999px;font-weight:700;font-size:13px}
+.status-pill.progress{background:#dbeafe;color:#1e40af}
+.status-pill.returned{background:#fef3c7;color:#92400e}
+.status-pill.rejected{background:#fee2e2;color:#991b1b}
+.status-pill.completed{background:#d1fae5;color:#065f46}
+body[dir="rtl"] .filterbar input,body[dir="rtl"] .filterbar select{text-align:right}
+@media(max-width:800px){.sidebar{width:205px}.content{padding:14px}.topbar{padding:12px 14px}.page{margin:0;width:210mm}.formgrid{grid-template-columns:1fr}}
+@media(max-width:620px){.app{display:block}.sidebar{width:100%;display:none!important}.sidebar.mobile-open{display:flex!important;position:fixed;inset:0 auto 0 0;width:260px;z-index:50}.mobile-menu{display:inline-block}.topbar h2{font-size:17px}.content{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{padding:13px}.stat strong{font-size:22px}.card{padding:13px}.funds{padding-right:0}.funds-amounts{width:150px}}
+@page{size:A4;margin:0}
+@media print{body{background:white}.sidebar,.topbar,.no-print,.editorbar,.editor-status,.toast,.modal,.media-section{display:none!important}.app,.main{display:block;overflow:visible;height:auto}.content{padding:0;max-width:none}.view{display:none!important}#view-editor{display:block!important}.performa-container{display:block!important;padding:0;background:white;overflow:visible}.page{box-shadow:none;margin:0;padding:15mm;width:210mm;min-height:297mm}.editable-locked{background:transparent!important;color:#111!important}}
+#appLoader{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#f3f4f6;color:#111827;font:600 14px "Segoe UI",Tahoma,sans-serif;transition:opacity .2s}
+#appLoader.done{opacity:0;pointer-events:none}
+.loader-ring{width:44px;height:44px;border:4px solid #dbeafe;border-top-color:#2563eb;border-radius:50%;animation:loaderSpin .8s linear infinite}
+@keyframes loaderSpin{to{transform:rotate(360deg)}}
+.login-submit{display:flex;align-items:center;justify-content:center;gap:9px}
+.button-spinner{width:15px;height:15px;border:2px solid #ffffff70;border-top-color:#fff;border-radius:50%;animation:loaderSpin .7s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+
+<div id="appLoader" role="status"><div class="loader-ring"></div><div id="loaderMessage">Initializing Performa Workflow…</div><div class="small muted">Please wait</div></div>
+
+<!-- ========== LOGIN SCREEN ========== -->
+<div id="loginScreen" class="login-screen">
+  <div class="loginbox">
+    <div class="logo-row">
+      <img src="Logo.png" alt="Logo" onerror="this.style.display='none'">
+      <h1 data-i18n="appTitle">Performa Workflow</h1>
+    </div>
+    <p class="muted" data-i18n="loginSubtitle">Sign in to your officer portal</p>
+
+    <div id="firstRunSetup" class="notice" style="display:none;margin-bottom:14px" data-i18n="setupNotice">First-time setup: create the initial Super Admin account.</div>
+
+    <form id="setupForm" style="display:none">
+      <div class="field"><label for="setupName" data-i18n="fullName">Full name</label><input id="setupName" autocomplete="name" required maxlength="100"></div>
+      <div class="field"><label for="setupContact" data-i18n="contact">Contact (phone / email)</label><input id="setupContact" required maxlength="120" placeholder="9876543210 / name@example.com"></div>
+      <div class="field"><label for="setupUsername" data-i18n="username">Super Admin username</label><input id="setupUsername" autocomplete="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+"></div>
+      <div class="field"><label for="setupPassword" data-i18n="passwordMin12">Create password (min 12 characters)</label><input id="setupPassword" type="password" autocomplete="new-password" required minlength="12"></div>
+      <div class="field"><label for="setupPasswordConfirm" data-i18n="confirmPassword">Confirm password</label><input id="setupPasswordConfirm" type="password" autocomplete="new-password" required minlength="12"></div>
+      <button class="primary login-submit" style="width:100%;padding:12px" type="submit" data-i18n="createSuperAdmin">Create Super Admin</button>
+    </form>
+
+    <form id="loginForm">
+      <div class="field"><label for="loginUser" data-i18n="username">Username</label><input id="loginUser" autocomplete="username" required></div>
+      <div class="field"><label for="loginPass" data-i18n="password">Password</label><input id="loginPass" type="password" autocomplete="current-password" required></div>
+      <button class="primary login-submit" style="width:100%;padding:12px" type="submit" data-i18n="login">Login</button>
+    </form>
+
+    <div id="loginError" class="small" style="color:#dc2626;margin-top:12px"></div>
+    <div id="setupNote" class="notice" data-i18n="setupNote">No default administrator exists. On first launch you will be asked to create a Super Admin.</div>
+
+    <div style="margin-top:16px;text-align:center">
+      <select id="langSelLogin" onchange="setLang(this.value)" style="width:auto;padding:6px 10px">
+        <option value="en">English</option>
+        <option value="ur">اردو</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <img src="Logo.png" alt="Logo" onerror="this.style.display='none'">
+    <span data-i18n="appTitle">Performa</span>
+  </div>
+  <nav class="nav">
+    <button class="active" data-view="dashboard" data-i18n="navDashboard">🏠 Dashboard</button>
+    <button data-view="all-requests" id="navAll" data-i18n="navAll">📋 All Requests</button>
+    <button data-view="create-request" id="navCreate" data-i18n="navCreate">＋ New Request</button>
+    <button data-view="audit" id="navAudit" data-i18n="navAudit">🧾 Audit Logs</button>
+    <button data-view="backup" id="navBackup" data-i18n="navBackup">💾 Backup</button>
+  </nav>
+  <div class="sidefoot">
+    <b id="sideName">User</b><br>
+    <span id="sideRole" class="muted small"></span><br>
+    <span id="sideContact" class="muted small" style="display:block;margin-top:4px"></span>
+    <button class="danger" style="width:100%;margin-top:12px" id="logoutBtn" data-i18n="logout">Logout</button>
+  </div>
+</aside>
+
+<main class="main" id="mainApp" style="display:none">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="secondary mobile-menu" id="mobileMenu">☰</button>
+      <h2 id="pageTitle" data-i18n="navDashboard">Dashboard</h2>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <select id="langSel" onchange="setLang(this.value)" style="width:auto;padding:6px 10px;margin:0">
+        <option value="en">English</option>
+        <option value="ur">اردو</option>
+      </select>
+      <span class="small"><span data-i18n="welcome">Welcome</span>, <b id="topName"></b></span>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section class="content view active" id="view-dashboard">
+    <div class="grid">
+      <div class="card stat" style="border-left-color:#d97706"><strong id="statPending">0</strong><span data-i18n="statPending">My Pending Tasks</span></div>
+      <div class="card stat"><strong id="statSubmitted">0</strong><span data-i18n="statSubmitted">My Submitted</span></div>
+      <div class="card stat" style="border-left-color:#059669"><strong id="statCompleted">0</strong><span data-i18n="statCompleted">Completed</span></div>
+      <div class="card stat" style="border-left-color:#7c3aed"><strong id="statAll">0</strong><span data-i18n="statAll">Total Visible</span></div>
+    </div>
+
+    <div id="ssoStatsWrap" class="stats-sso hidden">
+      <div class="card"><strong id="ssoTotalApproved">0</strong><span data-i18n="totalApproved">Total Approved (Rs.)</span></div>
+      <div class="card"><strong id="ssoAvg">0</strong><span data-i18n="avgApproved">Average Approved (Rs.)</span></div>
+      <div class="card"><strong id="ssoSpent">0</strong><span data-i18n="totalSpent">Total Spent (Rs.)</span></div>
+      <div class="card"><strong id="ssoRemaining">0</strong><span data-i18n="totalRemaining">Total Remaining (Rs.)</span></div>
+    </div>
+
+    <div class="card">
+      <div class="cardhead">
+        <span data-i18n="myPending">My Pending Tasks</span>
+        <button class="secondary" id="refreshTasks" data-i18n="refresh">Refresh</button>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr>
+          <th data-i18n="id">ID</th>
+          <th data-i18n="initiator">Initiator</th>
+          <th data-i18n="currentStage">Current Stage</th>
+          <th data-i18n="status">Status</th>
+          <th data-i18n="action">Action</th>
+        </tr></thead>
+        <tbody id="tasksBody"></tbody>
+      </table></div>
+      <div id="noTasks" class="empty hidden" data-i18n="noPending">No pending tasks assigned to you.</div>
+    </div>
+
+    <div class="card">
+      <div class="cardhead">
+        <span data-i18n="recentRequests">Recent Requests</span>
+        <div class="toolbar">
+          <input id="recentSearch" placeholder="Search" data-i18n-ph="search" style="width:200px">
+          <select id="recentStatus" style="width:auto">
+            <option value="" data-i18n="allStatuses">All statuses</option>
+            <option value="In Progress" data-i18n="inProgress">In Progress</option>
+            <option value="Returned" data-i18n="returned">Returned</option>
+            <option value="Rejected" data-i18n="rejected">Rejected</option>
+            <option value="Completed" data-i18n="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr>
+          <th data-i18n="id">ID</th>
+          <th data-i18n="title">Title</th>
+          <th data-i18n="initiator">Initiator</th>
+          <th data-i18n="currentStage">Stage</th>
+          <th data-i18n="status">Status</th>
+          <th data-i18n="nextActionBy">Next action by</th>
+          <th data-i18n="action">Action</th>
+        </tr></thead>
+        <tbody id="recentBody"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ALL REQUESTS (SSO only) -->
+  <section class="content view" id="view-all-requests">
+    <div class="card">
+      <div class="cardhead">
+        <span data-i18n="allRequests">All System Requests</span>
+        <div class="toolbar">
+          <input id="searchReq" placeholder="Search ID/title/initiator" data-i18n-ph="search" style="width:220px">
+          <select id="filterStatus" style="width:150px">
+            <option value="" data-i18n="allStatuses">All statuses</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Returned">Returned</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <button class="secondary" id="refreshRequests" data-i18n="refresh">Refresh</button>
+        </div>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr>
+          <th data-i18n="id">ID</th>
+          <th data-i18n="initiator">Initiator</th>
+          <th data-i18n="date">Date</th>
+          <th data-i18n="currentStage">Stage</th>
+          <th data-i18n="status">Status</th>
+          <th data-i18n="nextActionBy">Next action by</th>
+          <th data-i18n="action">Action</th>
+        </tr></thead>
+        <tbody id="allReqBody"></tbody>
+      </table></div>
+      <div id="noRequests" class="empty hidden" data-i18n="noRequests">No requests found.</div>
+    </div>
+  </section>
+
+  <!-- CREATE REQUEST -->
+  <section class="content view" id="view-create-request">
+    <div class="card">
+      <div class="cardhead" data-i18n="createNew">Create New Performa Request</div>
+      <form id="newRequestForm">
+        <div class="formgrid">
+          <div class="field"><label data-i18n="title">Request title / work summary</label><input id="newTitle" required maxlength="160"></div>
+          <div class="field"><label data-i18n="unit">Unit / Residence</label><input id="newAddress" required></div>
+          <div class="field"><label data-i18n="contactNo">Contact number</label><input id="newContact" required></div>
+          <div class="field"><label data-i18n="complaintDate">Date of complaint</label><input type="date" id="newDate" required></div>
+          <div class="field" style="grid-column:1/-1"><label data-i18n="description">Description of work</label><textarea id="newDescription" required></textarea></div>
+        </div>
+        <p class="small muted" style="margin:12px 0" data-i18n="createHint">A new request begins at Part-I. Fill the form, attach evidence (optional), sign and submit.</p>
+        <button class="primary" data-i18n="createRequest">Create Request</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- AUDIT (SSO only) -->
+  <section class="content view" id="view-audit">
+    <div class="card">
+      <div class="cardhead" data-i18n="auditLogs">Audit Logs</div>
+      <div class="tablewrap"><table>
+        <thead><tr>
+          <th data-i18n="time">Time</th><th data-i18n="request">Request</th>
+          <th data-i18n="user">User</th><th data-i18n="action">Action</th>
+          <th data-i18n="details">Details</th>
+        </tr></thead>
+        <tbody id="auditBody"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- BACKUP (SSO only) -->
+  <section class="content view" id="view-backup">
+    <div class="card">
+      <div class="cardhead" data-i18n="backupTitle">Database Backup</div>
+      <p class="small muted" data-i18n="backupNote">Exports whole server database as JSON. For full restore use phpMyAdmin/mysqldump.</p>
+      <button class="primary" id="exportBtn" data-i18n="exportBackup">Export Backup JSON</button>
+      <p id="backupStatus" class="small muted" style="margin-top:12px"></p>
+    </div>
+  </section>
+
+  <!-- EDITOR -->
+  <section class="content view" id="view-editor" style="padding:0">
+    <div class="editorbar no-print">
+      <button class="warning" id="backEditor" data-i18n="back">← Back</button>
+      <b id="editorInfo">Performa</b>
+      <div class="toolbar">
+        <button class="secondary" id="printBtn" data-i18n="print">Print</button>
+        <button class="primary hidden" id="saveDraftBtn" data-i18n="saveDraft">Save Draft</button>
+        <button class="success hidden" id="submitBtn" data-i18n="submit">Submit & Forward</button>
+        <button class="warning hidden" id="returnBtn" data-i18n="returnBtn">Return</button>
+        <button class="danger hidden" id="rejectBtn" data-i18n="rejectBtn">Reject</button>
+        <button class="secondary hidden" id="ssoOverrideBtn" data-i18n="override">SSO Override</button>
+      </div>
+    </div>
+
+    <div class="editor-status no-print" id="editorStatusBar">
+      <div><span data-i18n="currentStatus">Status:</span> <span id="statusPill" class="status-pill progress">In Progress</span></div>
+      <div id="nextActionWrap"></div>
+    </div>
+
+    <div class="performa-container" id="performaContainer">
+      <main class="page" id="performaPage">
+        <header class="header"><h2>PROFORMA FOR MAINTENANCE WORKS<br>(NON RESIDENTIAL / RESIDENTIAL)</h2></header>
+        <section class="form-part" data-part="part1"><div class="part">PART-I</div><div class="subtitle">(To be initiated by the user)</div>
+          <div class="row"><span class="label">Address (Unit / Residence)</span><div class="line" data-id="p1-addr"></div></div>
+          <div class="row"><span class="label">Name of user / occupant</span><div class="line" data-id="p1-name"></div></div>
+          <div class="row"><span class="label">Contact No (NAVCOM &amp; Mobile)</span><div class="line" data-id="p1-contact"></div></div>
+          <div class="row"><span class="label">Date of Complaint</span><input class="datefield" type="date" data-id="date-p1"></div>
+          <div class="row" style="align-items:flex-start"><span class="label">Description of work</span><div class="desc-list"><div class="desc-item"><span>a.</span><div class="line" data-id="p1-desc-a"></div></div><div class="desc-item"><span>b.</span><div class="line" data-id="p1-desc-b"></div></div><div class="desc-item"><span>c.</span><div class="line" data-id="p1-desc-c"></div></div></div></div>
+          <div class="signature-section"><div style="width:70mm"><div class="sigwrap"><span>Signature:</span><div class="sig-box" data-sig-id="sig-p1-user"></div></div><div class="sigwrap" style="margin-top:7px"><span>Dated:</span><input class="datefield" type="date" data-id="date-p1-sign"></div></div></div>
+        </section>
+        <section class="form-part" data-part="part2"><div class="part">PART-II</div><div class="subtitle">(To be completed by Administrator / Dy Administrator)</div>
+          <table class="form-table"><thead><tr><th style="width:30%">Works undertaken in</th><th>Details / Description of works</th><th style="width:15%;text-align:center">FY</th></tr></thead><tbody><tr><td>Star<br>Night Dash<br>Maintenance Package<br>Major Abnormal Maintenance</td><td data-id="p2-details" style="height:80px"></td><td data-id="p2-fy" style="text-align:center"></td></tr></tbody></table>
+          <div class="signature-section"><div class="sigwrap"><span>Sign with stamp:</span><div class="sig-box" data-sig-id="sig-p2-admin"></div></div></div>
+        </section>
+        <section class="form-part" data-part="part3"><div class="part">PART-III</div><div class="subtitle">(To be completed by Administrator / Dy Administrator)</div>
+          <div class="row"><span class="num">1.</span><span class="label">Date / Time of inspection</span><input class="datefield" type="date" data-id="date-p3-insp"></div>
+          <div class="row"><span class="num">2.</span><span class="label">Priority of Work</span><div class="line" data-id="p3-priority"></div></div>
+          <table class="form-table"><tbody><tr><td style="width:25%">Priority I</td><td>Safety works &amp; Hygiene-related works (Seepage, drain issues / stove / burner, electric fitting / fixture, Fly Proofing etc.)</td></tr><tr><td>Priority II</td><td>Security-related works (Concertina wire, security lights, boundary wall etc.)</td></tr><tr><td>Priority III</td><td>General / Cosmetic works (Distemper / Paint, floor grinding / polishing, office furniture etc.)</td></tr></tbody></table>
+          <div class="signature-section"><div class="sigwrap"><span>Sign with stamp:</span><div class="sig-box" data-sig-id="sig-p3-admin"></div></div></div>
+        </section>
+        <section class="form-part" data-part="part4"><div class="part">PART-IV</div><div class="subtitle">(To be completed by CFA)</div>
+          <div class="row"><span class="num">1.</span><span class="label">Date of receipt</span><input class="datefield" type="date" data-id="date-p4-receipt"></div>
+          <div class="row"><span class="num">2.</span><span class="label">Approved / Not approved</span><div class="line" data-id="p4-approval"></div></div>
+          <div class="row"><span class="num">3.</span><span class="label">Priority</span><div class="line" data-id="p4-priority"></div></div>
+          <div class="row"><span class="num">4.</span><span class="label">State of Funds available</span><div class="line" data-id="p4-funds"></div></div>
+          <div class="funds"><div class="funds-list"><div>a. Quarterly Ceiling allocated</div><div>b. Funds already used</div><div>c. Cost of the approved jobs</div><div>d. Balance Remaining <span id="fundsWarn" style="color:#dc2626;font-weight:bold" class="hidden">⚠ negative</span></div></div><div class="funds-amounts"><div class="amount-line"><span>Rs.</span><div class="line" data-id="p4-rs-a"></div></div><div class="amount-line"><span>Rs.</span><div class="line" data-id="p4-rs-b"></div></div><div class="amount-line"><span>Rs.</span><div class="line" data-id="p4-rs-c"></div></div><div class="amount-line"><span>Rs.</span><div class="line" data-id="p4-rs-d"></div></div></div></div>
+          <div class="signature-section"><div class="sigwrap"><span>Approving Authority Sign with stamp:</span><div class="sig-box" data-sig-id="sig-p4-cfa"></div></div></div>
+        </section>
+        <section class="form-part" data-part="part5"><div class="part">PART-V</div><div class="subtitle">(To be completed by HQ)</div><div class="row"><span class="num">1.</span><span class="label">Date of receipt</span><input class="datefield" type="date" data-id="date-p5-receipt"></div><div class="row"><span class="num">2.</span><span class="label">Principal Approval accorded</span><div class="line" data-id="p5-approval"></div></div><div class="row"><span class="num">3.</span><span class="label">Status of Funds available</span><div class="line" data-id="p5-funds"></div></div><div class="signature-section"><div class="sigwrap"><span>SSO Sign:</span><div class="sig-box" data-sig-id="sig-p5-sso"></div></div></div></section>
+        <section class="form-part" data-part="part6"><div class="part">PART-VI</div><div class="subtitle">(To be completed by GE concerned)</div><div class="row"><span class="num">1.</span><span class="label">Date of initiation</span><input class="datefield" type="date" data-id="date-p6-init"></div><div class="row"><span class="num">2.</span><span class="label">Date of completion</span><input class="datefield" type="date" data-id="date-p6-comp"></div><div class="signature-section"><div class="sigwrap"><span>Signature:</span><div class="sig-box" data-sig-id="sig-p6-ge"></div></div></div></section>
+        <section class="form-part" data-part="part7"><div class="part">PART-VII</div><div class="subtitle">(To be completed by user / initiator)</div><div class="row"><span class="num">1.</span><span class="label">Date of completion</span><input class="datefield" type="date" data-id="date-p7-comp"></div><div class="row"><span class="num">2.</span><span class="label">Satisfactory / Non Satisfactory</span><div class="line" data-id="p7-satisfaction"></div></div><div class="row"><span class="num">3.</span><span class="label">Remarks (if any)</span><div class="line" data-id="p7-remarks"></div></div><div class="signature-section"><div class="sigwrap"><span>Signature:</span><div class="sig-box" data-sig-id="sig-p7-user"></div></div></div></section>
+        <div class="footer-note">Note: On completion of repair / maintenance works the proforma must be put up to Dy. Administrator for signature within 30 days from the date of approval of said work.</div>
+      </main>
+    </div>
+
+    <div class="media-section no-print" id="mediaSection">
+      <h3 style="margin:0 0 10px" data-i18n="attachments">Attachments</h3>
+      <p class="small muted" data-i18n="mediaHint">Optional. Up to 3 images (≤1MB each) and 1 video (≤30s, ≤2MB). Hover to preview.</p>
+      <div class="media-grid" id="mediaGrid"></div>
+      <div id="mediaUploadControls" class="hidden">
+        <input type="file" id="imageInput" accept="image/*" multiple style="display:none">
+        <input type="file" id="videoInput" accept="video/*" style="display:none">
+        <button class="secondary" id="uploadImageBtn" data-i18n="uploadImage">📷 Upload Image</button>
+        <button class="secondary" id="uploadVideoBtn" data-i18n="uploadVideo">🎥 Upload Video</button>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+
+<!-- Preview popup -->
+<div class="preview-popup" id="previewPopup"></div>
+
+<!-- Signature modal -->
+<div class="modal" id="signatureModal">
+  <div class="modalbox">
+    <div class="modalhead">
+      <b data-i18n="drawSign">Draw or upload signature</b>
+      <button class="secondary" id="closeSig" data-i18n="close">Close</button>
+    </div>
+    <div class="modalbody">
+      <div class="toolbar" style="margin-bottom:10px">
+        <button class="secondary" id="clearSig" data-i18n="clear">Clear</button>
+        <button class="secondary" id="uploadSigBtn" data-i18n="uploadSigImage">📷 Upload image</button>
+        <input type="file" id="sigFileInput" accept="image/*" style="display:none">
+        <span class="small muted" data-i18n="signHint">Draw with mouse/touch, or upload image (white background auto-removed).</span>
+      </div>
+      <div class="sigcanvaswrap"><canvas id="signatureCanvas"></canvas></div>
+    </div>
+    <div class="modalfoot">
+      <button class="secondary" id="cancelSig" data-i18n="cancel">Cancel</button>
+      <button class="success" id="saveSig" data-i18n="saveSig">Save Signature</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reason modal -->
+<div class="modal" id="reasonModal">
+  <div class="modalbox">
+    <div class="modalhead">
+      <b id="reasonTitle">Reason</b>
+      <button class="secondary" id="closeReason" data-i18n="close">Close</button>
+    </div>
+    <div class="modalbody">
+      <label for="reasonText" data-i18n="reasonLabel">Reason / comment</label>
+      <textarea id="reasonText" required></textarea>
+    </div>
+    <div class="modalfoot">
+      <button class="secondary" id="cancelReason" data-i18n="cancel">Cancel</button>
+      <button class="primary" id="confirmReason" data-i18n="confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+/* ==================== i18n ==================== */
+const I18N = {
+  en: {
+    appTitle:'Performa Workflow', loginSubtitle:'Sign in to your officer portal',
+    setupNotice:'First-time setup: create the initial Super Admin account.',
+    fullName:'Full name', contact:'Contact (phone / email)', username:'Username',
+    passwordMin12:'Create password (min 12 characters)', confirmPassword:'Confirm password',
+    createSuperAdmin:'Create Super Admin', password:'Password', login:'Login',
+    setupNote:'No default admin exists. On first launch you will be asked to create a Super Admin.',
+    logout:'Logout', welcome:'Welcome',
+    navDashboard:'🏠 Dashboard', navAll:'📋 All Requests', navCreate:'＋ New Request',
+    navAudit:'🧾 Audit Logs', navBackup:'💾 Backup',
+    statPending:'My Pending Tasks', statSubmitted:'My Submitted', statCompleted:'Completed', statAll:'Total Visible',
+    totalApproved:'Total Approved (Rs.)', avgApproved:'Average Approved (Rs.)',
+    totalSpent:'Total Spent (Rs.)', totalRemaining:'Total Remaining (Rs.)',
+    myPending:'My Pending Tasks', recentRequests:'Recent Requests', allRequests:'All System Requests',
+    id:'ID', title:'Title', initiator:'Initiator', currentStage:'Current Stage', stage:'Stage',
+    status:'Status', nextActionBy:'Next action by', action:'Action', date:'Date', updated:'Updated',
+    refresh:'Refresh', search:'Search', allStatuses:'All statuses',
+    inProgress:'In Progress', returned:'Returned', rejected:'Rejected', completed:'Completed',
+    noPending:'No pending tasks assigned to you.', noRequests:'No requests found.',
+    createNew:'Create New Performa Request', unit:'Unit / Residence', contactNo:'Contact number',
+    complaintDate:'Date of complaint', description:'Description of work',
+    createHint:'A new request begins at Part-I. Fill the form, attach evidence (optional), sign and submit.',
+    createRequest:'Create Request', auditLogs:'Audit Logs', time:'Time', request:'Request',
+    user:'User', details:'Details', backupTitle:'Database Backup',
+    backupNote:'Exports whole server database as JSON. For full restore use phpMyAdmin/mysqldump.',
+    exportBackup:'Export Backup JSON', back:'← Back', print:'Print', saveDraft:'Save Draft',
+    submit:'Submit & Forward', returnBtn:'Return', rejectBtn:'Reject', override:'SSO Override',
+    currentStatus:'Status:', attachments:'Attachments',
+    mediaHint:'Optional. Up to 3 images (≤1MB each) and 1 video (≤30s, ≤2MB). Hover to preview.',
+    uploadImage:'📷 Upload Image', uploadVideo:'🎥 Upload Video',
+    drawSign:'Draw or upload signature', close:'Close', clear:'Clear',
+    uploadSigImage:'📷 Upload image',
+    signHint:'Draw with mouse/touch, or upload image (white background auto-removed).',
+    cancel:'Cancel', saveSig:'Save Signature', reasonLabel:'Reason / comment', confirm:'Confirm',
+    returnTitle:'Return for Correction', rejectTitle:'Reject Request', overrideTitle:'SSO Override',
+    submitConfirm:'Submit this stage and forward?', draftSaved:'Draft saved',
+    stageSubmitted:'Stage submitted', requestUpdated:'Request updated', requestCreated:'Request created',
+    enterReason:'Please enter a reason', permissionDenied:'Permission denied',
+    autoRejected:'Part-IV marked Not approved — request auto-rejected.',
+    uploadSuccess:'Uploaded successfully', maxImages:'Maximum 3 images reached',
+    maxVideo:'Only 1 video allowed', imageTooBig:'Image must be ≤ 1 MB',
+    videoTooBig:'Video must be ≤ 2 MB', videoTooLong:'Video must be ≤ 30 seconds',
+    uploadFailed:'Upload failed', mediaDeleted:'Media deleted',
+    returnedBanner:'This request was returned for correction.',
+    sigUploaded:'Signature uploaded. Background removed. Click Save.',
+    lang:'Language',
+  },
+  ur: {
+    appTitle:'پرفارما ورک فلو', loginSubtitle:'اپنے آفیسر پورٹل میں سائن ان کریں',
+    setupNotice:'پہلی بار سیٹ اپ: پہلا سپر ایڈمن اکاؤنٹ بنائیں۔',
+    fullName:'پورا نام', contact:'رابطہ (فون / ای میل)', username:'یوزر نیم',
+    passwordMin12:'پاس ورڈ (کم از کم 12 حروف)', confirmPassword:'پاس ورڈ کی تصدیق',
+    createSuperAdmin:'سپر ایڈمن بنائیں', password:'پاس ورڈ', login:'لاگ ان',
+    setupNote:'کوئی ڈیفالٹ ایڈمن نہیں۔ پہلی بار سپر ایڈمن بنائیں گے۔',
+    logout:'لاگ آؤٹ', welcome:'خوش آمدید',
+    navDashboard:'🏠 ڈیش بورڈ', navAll:'📋 تمام درخواستیں', navCreate:'＋ نئی درخواست',
+    navAudit:'🧾 آڈٹ لاگ', navBackup:'💾 بیک اپ',
+    statPending:'میرے زیر التواء کام', statSubmitted:'میری جمع شدہ', statCompleted:'مکمل', statAll:'کل نظر آنے والی',
+    totalApproved:'کل منظور شدہ (روپے)', avgApproved:'اوسط منظور شدہ (روپے)',
+    totalSpent:'کل خرچ شدہ (روپے)', totalRemaining:'کل باقی (روپے)',
+    myPending:'میرے زیر التواء کام', recentRequests:'حالیہ درخواستیں', allRequests:'تمام سسٹم درخواستیں',
+    id:'آئی ڈی', title:'عنوان', initiator:'شروع کرنے والا', currentStage:'موجودہ مرحلہ', stage:'مرحلہ',
+    status:'حالت', nextActionBy:'اگلا عمل کس کا', action:'کارروائی', date:'تاریخ', updated:'اپ ڈیٹ',
+    refresh:'ریفریش', search:'تلاش کریں', allStatuses:'تمام حالتیں',
+    inProgress:'جاری', returned:'واپس شدہ', rejected:'مسترد', completed:'مکمل',
+    noPending:'آپ کے پاس کوئی زیر التواء کام نہیں۔', noRequests:'کوئی درخواست نہیں ملی۔',
+    createNew:'نئی پرفارما درخواست بنائیں', unit:'یونٹ / رہائش', contactNo:'رابطہ نمبر',
+    complaintDate:'شکایت کی تاریخ', description:'کام کی تفصیل',
+    createHint:'نئی درخواست حصہ-I سے شروع ہوتی ہے۔ فارم بھریں، ثبوت منسلک کریں (اختیاری)، دستخط کریں اور جمع کریں۔',
+    createRequest:'درخواست بنائیں', auditLogs:'آڈٹ لاگ', time:'وقت', request:'درخواست',
+    user:'صارف', details:'تفصیلات', backupTitle:'ڈیٹا بیس بیک اپ',
+    backupNote:'پورا سرور ڈیٹا بیس JSON میں۔ مکمل بحالی کے لیے phpMyAdmin استعمال کریں۔',
+    exportBackup:'بیک اپ JSON ڈاؤن لوڈ', back:'← واپس', print:'پرنٹ', saveDraft:'ڈرافٹ محفوظ کریں',
+    submit:'جمع اور آگے بھیجیں', returnBtn:'واپس کریں', rejectBtn:'مسترد کریں', override:'SSO اوور رائیڈ',
+    currentStatus:'حالت:', attachments:'منسلکات',
+    mediaHint:'اختیاری۔ 3 تصاویر (ہر ایک ≤1MB) اور 1 ویڈیو (≤30s، ≤2MB)۔ پیش منظر کے لیے ہوور کریں۔',
+    uploadImage:'📷 تصویر اپ لوڈ', uploadVideo:'🎥 ویڈیو اپ لوڈ',
+    drawSign:'دستخط بنائیں یا اپ لوڈ کریں', close:'بند کریں', clear:'صاف کریں',
+    uploadSigImage:'📷 تصویر اپ لوڈ',
+    signHint:'ماؤس/ٹچ سے دستخط کریں یا تصویر اپ لوڈ کریں (سفید پس منظر خودکار ختم)۔',
+    cancel:'منسوخ', saveSig:'دستخط محفوظ کریں', reasonLabel:'وجہ / تبصرہ', confirm:'تصدیق',
+    returnTitle:'درستی کے لیے واپس', rejectTitle:'درخواست مسترد', overrideTitle:'SSO اوور رائیڈ',
+    submitConfirm:'یہ مرحلہ جمع کرکے آگے بھیجیں؟', draftSaved:'ڈرافٹ محفوظ ہو گیا',
+    stageSubmitted:'مرحلہ جمع ہو گیا', requestUpdated:'درخواست اپ ڈیٹ ہو گئی', requestCreated:'درخواست بن گئی',
+    enterReason:'وجہ لکھیں', permissionDenied:'اجازت نہیں',
+    autoRejected:'حصہ-IV میں نامنظور — درخواست خودکار مسترد۔',
+    uploadSuccess:'کامیابی سے اپ لوڈ ہو گیا', maxImages:'زیادہ سے زیادہ 3 تصاویر',
+    maxVideo:'صرف 1 ویڈیو کی اجازت ہے', imageTooBig:'تصویر ≤1MB ہونی چاہیے',
+    videoTooBig:'ویڈیو ≤2MB ہونی چاہیے', videoTooLong:'ویڈیو ≤30 سیکنڈ ہونی چاہیے',
+    uploadFailed:'اپ لوڈ ناکام', mediaDeleted:'منسلکہ حذف ہو گیا',
+    returnedBanner:'یہ درخواست درستی کے لیے واپس آئی ہے۔',
+    sigUploaded:'دستخط اپ لوڈ، پس منظر ختم۔ محفوظ کریں۔',
+    lang:'زبان',
+  }
+};
+
+let currentLang = 'en';
+function t(k){ return (I18N[currentLang] && I18N[currentLang][k]) || k; }
+function applyLang(){
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = currentLang === 'ur' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  ['langSel','langSelLogin'].forEach(id => { const el = document.getElementById(id); if (el) el.value = currentLang; });
+}
+function setLang(lang){
+  currentLang = lang === 'ur' ? 'ur' : 'en';
+  document.cookie = 'pref_lang=' + currentLang + ';path=/officer/;max-age=31536000';
+  applyLang();
+  if (currentUser) { loadDashboard(); if (currentUser.role === 'sso') renderAllRequests(); }
+}
+function loadLang(){
+  const m = document.cookie.match(/(?:^|;\s*)pref_lang=([^;]+)/);
+  currentLang = m && m[1] === 'ur' ? 'ur' : 'en';
+  applyLang();
+}
+
+/* ==================== API ==================== */
+const API = 'api/index.php';
+const $ = id => document.getElementById(id);
+let csrfToken = '';
+
+async function apiCall(path, opts = {}){
+  const cfg = {
+    credentials: 'same-origin',
+    method: opts.method || 'GET',
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+  };
+  if (cfg.method !== 'GET' && csrfToken) cfg.headers['X-CSRF-Token'] = csrfToken;
+  if (opts.body !== undefined) cfg.body = typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body);
+  const res = await fetch(API + path, cfg);
+  let data = {};
+  try { data = await res.json(); } catch (_) {}
+  if (data._csrf) csrfToken = data._csrf;
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+/* ==================== Workflow constants ==================== */
+const STAGE_META = {
+  part1:{part:'part1',dept:'general',role:'Part-I (User)'},
+  part2:{part:'part2',dept:'deputy_admin',role:'Part-II (Dy Admin)'},
+  part3:{part:'part3',dept:'deputy_admin',role:'Part-III (Dy Admin)'},
+  part4:{part:'part4',dept:'part4',role:'Part-IV (CFA)'},
+  deputy_return:{part:'part3',dept:'deputy_admin',role:'Deputy Admin Review'},
+  part5:{part:'part5',dept:'part5',role:'Part-V (HQ)'},
+  part6:{part:'part6',dept:'part6',role:'Part-VI (GE)'},
+  part7:{part:'part7',dept:'general',role:'Part-VII (User)'}
+};
+const DEFAULT_ORDER = ['part1','part2','part3','part4','deputy_return','part5','part6','part7'];
+let workflowOrder = [...DEFAULT_ORDER];
+let WORKFLOW = buildWorkflow(workflowOrder);
+function buildWorkflow(order){
+  const out = {};
+  order.forEach((k,i) => { const m = STAGE_META[k]; if (m) out[k] = {...m, next: order[i+1] || 'completed'}; });
+  return out;
+}
+function stagePart(key){ return WORKFLOW[key]?.part || key; }
+async function loadWorkflowConfig(){
+  try {
+    const d = await apiCall('?action=settings');
+    if (d.workflow && Array.isArray(d.workflow.order) && d.workflow.order.length){
+      if (d.workflow.order.every(k => STAGE_META[k])) {
+        workflowOrder = [...d.workflow.order];
+        WORKFLOW = buildWorkflow(workflowOrder);
+      }
+    }
+  } catch(_){}
+}
+
+/* ==================== State ==================== */
+let currentUser = null;
+let currentRequest = null;
+let editorViewOnly = false;
+let activeSigBox = null;
+let reasonAction = null;
+let signatureCanvas = null;
+let sigCtx = null;
+let drawing = false;
+let autoRefreshTimer = null;
+let dashboardRequests = [];
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const stageName = k => WORKFLOW[k]?.role || (k === 'completed' ? 'Completed' : k);
+function statusOf(r){ return r.status === 'Rejected' ? 'Rejected' : r.status === 'Returned' ? 'Returned' : r.currentStep === 'completed' ? 'Completed' : 'In Progress'; }
+function statusPillClass(s){ return s === 'Completed' ? 'completed' : s === 'Rejected' ? 'rejected' : s === 'Returned' ? 'returned' : 'progress'; }
+
+function toast(msg){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+function isManager(){ return ['sso','admin'].includes(currentUser?.role); }
+function canCreate(){ return ['sso','admin','officer'].includes(currentUser?.role); }
+
+function canAct(req){
+  if (!req || req.status === 'Rejected' || req.currentStep === 'completed') return false;
+  if (['sso','admin'].includes(currentUser.role)) return true;
+  const part = stagePart(req.currentStep);
+  const explicit = req.assignments?.[req.currentStep];
+  if (explicit) return explicit === currentUser.username;
+  if (Array.isArray(currentUser.allowedParts) && !currentUser.allowedParts.includes(part)) return false;
+  return currentUser.role === 'officer' &&
+    (['part1','part7'].includes(part) || WORKFLOW[req.currentStep]?.dept === currentUser.dept);
+}
+
+/* ==================== Bootstrap (FIXED) ==================== */
+async function bootstrap(){
+  try {
+    const status = await apiCall('?action=setup-status');
+    if (status.needsSetup){
+      $('firstRunSetup').style.display = 'block';
+      $('setupForm').style.display = 'block';
+      $('loginForm').style.display = 'none';
+      $('setupNote').style.display = 'none';
+      return;
+    }
+    try {
+      const me = await apiCall('?action=me');
+      // FIX: Validate that user object exists and has required fields
+      if (!me || !me.user || !me.user.username){
+        currentUser = null;
+        // session invalid → stay on login screen
+        return;
+      }
+      currentUser = me.user;
+      await loadWorkflowConfig();
+      showApp();
+    } catch(err){
+      // 401 or any error → user not logged in, stay on login screen
+      currentUser = null;
+    }
+  } catch(e){
+    $('loginError').textContent = 'Error: ' + (e.message || 'Cannot reach server');
+  }
+}
+
+/* ==================== showApp (FIXED with null guard) ==================== */
+async function showApp(){
+  // FIX: Defensive null check — never let currentUser be undefined here
+  if (!currentUser || !currentUser.username){
+    try { await apiCall('?action=logout', { method: 'POST' }); } catch(_){}
+    currentUser = null;
+    $('loginScreen').classList.remove('hidden');
+    $('mainApp').style.display = 'none';
+    $('sidebar').style.display = 'none';
+    stopAutoRefresh();
+    return;
+  }
+
+  $('loginScreen').classList.add('hidden');
+  $('mainApp').style.display = 'block';
+  $('sidebar').style.display = 'flex';
+  $('sideName').textContent = currentUser.name || currentUser.username || '';
+  $('sideRole').textContent = ((currentUser.role || '') + ' · ' + (currentUser.dept || 'general')).toUpperCase();
+  $('sideContact').textContent = currentUser.contact ? '📞 ' + currentUser.contact : '';
+  $('topName').textContent = currentUser.name || currentUser.username || '';
+  $('navAll').classList.toggle('hidden', currentUser.role !== 'sso');
+  $('navAudit').classList.toggle('hidden', !isManager());
+  $('navBackup').classList.toggle('hidden', !isManager());
+  $('navCreate').classList.toggle('hidden', !canCreate());
+  switchView('dashboard');
+  startAutoRefresh();
+}
+
+async function login(username, password){
+  const res = await apiCall('?action=login', { method: 'POST', body: { username, password } });
+  if (!res || !res.user || !res.user.username){
+    throw new Error('Login failed: invalid response from server');
+  }
+  currentUser = res.user;
+  await loadWorkflowConfig();
+  await showApp();
+}
+
+async function logout(){
+  try { await apiCall('?action=logout', { method: 'POST' }); } catch(_){}
+  currentUser = null;
+  currentRequest = null;
+  stopAutoRefresh();
+  $('mainApp').style.display = 'none';
+  $('sidebar').style.display = 'none';
+  $('loginScreen').classList.remove('hidden');
+  $('loginForm').style.display = 'block';
+  $('setupForm').style.display = 'none';
+  $('firstRunSetup').style.display = 'none';
+  $('loginPass').value = '';
+  $('loginError').textContent = '';
+}
+
+/* ==================== View switching ==================== */
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const view = $('view-' + name);
+  if (!view) return;
+  view.classList.add('active');
+  document.querySelectorAll('.nav button[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  const titles = { dashboard:t('navDashboard'), 'all-requests':t('allRequests'), 'create-request':t('createNew'), audit:t('auditLogs'), backup:t('backupTitle'), editor:t('appTitle') };
+  $('pageTitle').textContent = titles[name] || name;
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'all-requests') renderAllRequests();
+  if (name === 'audit') renderAudit();
+  if (name === 'create-request' && !canCreate()) switchView('dashboard');
+  $('sidebar').classList.remove('mobile-open');
+}
+
+/* ==================== Dashboard ==================== */
+async function getRequests(limit = 50){
+  const params = new URLSearchParams({ limit: String(limit) });
+  return (await apiCall('?action=requests&' + params.toString())).requests || [];
+}
+
+async function loadDashboard(){
+  if (!currentUser) return;
+  try {
+    const [reqs, stats] = await Promise.all([
+      getRequests(50),
+      apiCall('?action=stats').catch(() => null),
+    ]);
+    dashboardRequests = reqs;
+
+    let pending = 0, submitted = 0, completed = 0;
+    const tasks = [];
+    reqs.forEach(r => {
+      const sub = Object.values(r.stageStatus || {}).some(s => s && s.submittedBy === currentUser.username);
+      if (sub) submitted++;
+      if (r.currentStep === 'completed') {
+        if (r.initiatedBy === currentUser.username || currentUser.role === 'sso') completed++;
+      }
+      if (canAct(r) && r.status !== 'Rejected') {
+        pending++;
+        tasks.push(r);
+      }
+    });
+    $('statPending').textContent = pending;
+    $('statSubmitted').textContent = submitted;
+    $('statCompleted').textContent = completed;
+    $('statAll').textContent = stats?.total ?? reqs.length;
+
+    if (currentUser.role === 'sso' && stats){
+      $('ssoStatsWrap').classList.remove('hidden');
+      $('ssoTotalApproved').textContent = Math.round(stats.totalApproved || 0).toLocaleString();
+      $('ssoAvg').textContent = Math.round(stats.averageApproved || 0).toLocaleString();
+      $('ssoSpent').textContent = Math.round(stats.totalSpent || 0).toLocaleString();
+      $('ssoRemaining').textContent = Math.round(stats.totalRemaining || 0).toLocaleString();
+    } else {
+      $('ssoStatsWrap').classList.add('hidden');
+    }
+
+    $('tasksBody').innerHTML = tasks.length ? tasks.map(r => `
+      <tr>
+        <td><b>${esc(r.id)}</b></td>
+        <td>${esc(r.initiatedBy)}</td>
+        <td>${esc(stageName(r.currentStep))}</td>
+        <td><span class="badge ${statusPillClass(statusOf(r))}">${esc(statusOf(r))}</span></td>
+        <td><button class="primary" data-open="${esc(r.id)}">Open</button></td>
+      </tr>`).join('') : '';
+    $('noTasks').classList.toggle('hidden', tasks.length > 0);
+
+    renderRecent();
+  } catch(e){ console.error(e); }
+}
+
+function renderRecent(){
+  const q = ($('recentSearch').value || '').toLowerCase().trim();
+  const st = $('recentStatus').value;
+  let list = dashboardRequests.slice(0, 10);
+  if (q) list = list.filter(r => (r.id + ' ' + (r.title||'') + ' ' + r.initiatedBy).toLowerCase().includes(q));
+  if (st) list = list.filter(r => statusOf(r) === st);
+  $('recentBody').innerHTML = list.map(r => `
+    <tr>
+      <td><b>${esc(r.id)}</b></td>
+      <td>${esc(r.title || '—')}</td>
+      <td>${esc(r.initiatedBy)}</td>
+      <td>${esc(stageName(r.currentStep))}</td>
+      <td><span class="badge ${statusPillClass(statusOf(r))}">${esc(statusOf(r))}</span></td>
+      <td>${r.nextActionBy ? `<span class="next-action"><b>${esc(r.nextActionBy.name || r.nextActionBy.username)}</b>${r.nextActionBy.contact ? ' · ' + esc(r.nextActionBy.contact) : ''}</span>` : '—'}</td>
+      <td><button class="secondary" data-viewreq="${esc(r.id)}">View</button></td>
+    </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;color:#64748b;padding:20px">${t('noRequests')}</td></tr>`;
+}
+
+$('refreshTasks').addEventListener('click', loadDashboard);
+$('recentSearch').addEventListener('input', renderRecent);
+$('recentStatus').addEventListener('change', renderRecent);
+
+/* ==================== All Requests (SSO) ==================== */
+async function renderAllRequests(){
+  if (currentUser?.role !== 'sso') return;
+  try {
+    const status = $('filterStatus').value;
+    const q = $('searchReq').value.trim();
+    const params = new URLSearchParams({ limit: '500' });
+    if (status) params.set('status', status);
+    if (q) params.set('q', q);
+    const data = await apiCall('?action=requests&' + params.toString());
+    $('allReqBody').innerHTML = (data.requests || []).map(r => `
+      <tr>
+        <td><b>${esc(r.id)}</b><br><span class="muted small">${esc(r.title||'')}</span></td>
+        <td>${esc(r.initiatedBy)}</td>
+        <td>${new Date(r.initiatedAt).toLocaleDateString()}</td>
+        <td>${esc(stageName(r.currentStep))}</td>
+        <td><span class="badge ${statusPillClass(statusOf(r))}">${esc(statusOf(r))}</span></td>
+        <td>${r.nextActionBy ? `<span class="next-action"><b>${esc(r.nextActionBy.name || r.nextActionBy.username)}</b>${r.nextActionBy.contact ? ' · ' + esc(r.nextActionBy.contact) : ''}</span>` : '—'}</td>
+        <td><button class="secondary" data-viewreq="${esc(r.id)}">View</button></td>
+      </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;color:#64748b;padding:20px">${t('noRequests')}</td></tr>`;
+    $('noRequests').classList.toggle('hidden', (data.requests || []).length > 0);
+  } catch(e){ console.error(e); }
+}
+$('refreshRequests').addEventListener('click', renderAllRequests);
+$('searchReq').addEventListener('input', () => {
+  clearTimeout(window.__allSearchT);
+  window.__allSearchT = setTimeout(renderAllRequests, 300);
+});
+$('filterStatus').addEventListener('change', renderAllRequests);
+
+/* ==================== Create Request ==================== */
+$('newRequestForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    const formData = {
+      'p1-addr':    $('newAddress').value.trim(),
+      'p1-name':    (currentUser && (currentUser.name || currentUser.username)) || '',
+      'p1-contact': $('newContact').value.trim(),
+      'date-p1':    $('newDate').value || new Date().toISOString().slice(0,10),
+      'p1-desc-a':  esc($('newDescription').value.trim()).replace(/\n/g, '<br>'),
+      'p1-desc-b':  '',
+      'p1-desc-c':  '',
+    };
+    const { id } = await apiCall('?action=requests', {
+      method: 'POST',
+      body: { title: $('newTitle').value.trim(), formData }
+    });
+    $('newRequestForm').reset();
+    toast(t('requestCreated'));
+    await openRequest(id, false);
+  } catch(err){ alert('Could not create: ' + err.message); }
+});
+
+/* ==================== Editor ==================== */
+async function openRequest(id, viewOnly = false){
+  try {
+    const { request } = await apiCall('?action=request&id=' + encodeURIComponent(id));
+    currentRequest = request;
+    editorViewOnly = viewOnly;
+    fillPage(request.formData || {});
+    $('editorInfo').textContent = `${request.id} · ${request.title || ''}`;
+    switchView('editor');
+    applyPermissions(viewOnly);
+    updateStatusBar();
+    renderMedia(request.media || []);
+    wireAutoCalc();
+    if (request.status === 'Returned' && request.returnedTo === currentUser.username){
+      toast(t('returnedBanner'));
+    }
+  } catch(e){ toast('Error: ' + e.message); }
+}
+
+function updateStatusBar(){
+  if (!currentRequest) return;
+  const st = statusOf(currentRequest);
+  const pill = $('statusPill');
+  pill.className = 'status-pill ' + statusPillClass(st);
+  pill.textContent = t(st === 'In Progress' ? 'inProgress' : st === 'Returned' ? 'returned' : st === 'Rejected' ? 'rejected' : 'completed');
+
+  const wrap = $('nextActionWrap');
+  if (currentRequest.nextActionBy){
+    wrap.innerHTML = `<span class="next-action">${t('nextActionBy')}: <b>${esc(currentRequest.nextActionBy.name || currentRequest.nextActionBy.username)}</b>${currentRequest.nextActionBy.contact ? ' · 📞 ' + esc(currentRequest.nextActionBy.contact) : ''}</span>`;
+  } else if (st === 'Completed'){
+    wrap.innerHTML = `<span class="status-pill completed">✅ ${t('completed')}</span>`;
+  } else if (st === 'Rejected'){
+    wrap.innerHTML = `<span class="status-pill rejected">❌ ${t('rejected')}</span>`;
+  } else {
+    wrap.innerHTML = '';
+  }
+}
+
+function applyPermissions(viewOnly){
+  const req = currentRequest;
+  const editable = !viewOnly && canAct(req) && req.status !== 'Rejected' && req.currentStep !== 'completed';
+  document.querySelectorAll('#performaPage .form-part').forEach(sec => {
+    const allowed = editable && sec.dataset.part === stagePart(req.currentStep);
+    sec.querySelectorAll('[data-id]').forEach(el => {
+      if (el.matches('input')) el.disabled = !allowed;
+      else { el.contentEditable = allowed ? 'true' : 'false'; el.classList.toggle('editable-locked', !allowed); }
+    });
+    sec.querySelectorAll('.sig-box').forEach(b => b.classList.toggle('locked', !allowed));
+  });
+  $('saveDraftBtn').classList.toggle('hidden', !editable);
+  $('submitBtn').classList.toggle('hidden', !editable);
+  $('returnBtn').classList.toggle('hidden', !editable || (currentUser.role === 'officer' && stagePart(req.currentStep) === 'part1'));
+  $('rejectBtn').classList.toggle('hidden', !editable || currentUser.role === 'officer');
+  $('ssoOverrideBtn').classList.toggle('hidden', currentUser.role !== 'sso');
+  $('mediaUploadControls').classList.toggle('hidden', !editable);
+  $('editorInfo').textContent = `${req.id} · ${req.title || ''} · ${stageName(req.currentStep)}`;
+}
+
+function formDataFromPage(){
+  const data = {};
+  document.querySelectorAll('#performaPage [data-id]').forEach(el => {
+    data[el.dataset.id] = el.matches('input') ? el.value : el.innerHTML;
+  });
+  document.querySelectorAll('#performaPage .sig-box').forEach(box => {
+    if (!box.dataset.sigId) return;
+    const c = box.querySelector('canvas');
+    if (c && c.dataset.saved === '1') data[box.dataset.sigId] = c.toDataURL('image/png');
+    else if (currentRequest?.formData?.[box.dataset.sigId]) data[box.dataset.sigId] = currentRequest.formData[box.dataset.sigId];
+  });
+  return data;
+}
+
+function fillPage(data = {}){
+  document.querySelectorAll('#performaPage [data-id]').forEach(el => {
+    const v = data[el.dataset.id] ?? '';
+    if (el.matches('input')) el.value = v;
+    else el.innerHTML = v;
+  });
+  document.querySelectorAll('#performaPage .sig-box').forEach(box => {
+    const c = box.querySelector('canvas');
+    const ph = box.querySelector('.placeholder');
+    if (!c) return;
+    c.dataset.saved = '0';
+    c.getContext('2d').clearRect(0, 0, c.width, c.height);
+    const src = data[box.dataset.sigId];
+    if (src){
+      const img = new Image();
+      img.onload = () => { c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.dataset.saved = '1'; if (ph) ph.style.display = 'none'; };
+      img.src = src;
+    } else if (ph) ph.style.display = 'flex';
+  });
+}
+
+/* ==================== Required fields ==================== */
+const REQUIRED_BY_STAGE = {
+  part1: ['p1-addr','p1-name','p1-contact','date-p1','p1-desc-a','date-p1-sign','sig-p1-user'],
+  part2: ['p2-details','p2-fy','sig-p2-admin'],
+  part3: ['date-p3-insp','p3-priority','sig-p3-admin'],
+  part4: ['date-p4-receipt','p4-approval','p4-priority','p4-funds','p4-rs-a','p4-rs-b','p4-rs-c','sig-p4-cfa'],
+  part5: ['date-p5-receipt','p5-approval','p5-funds','sig-p5-sso'],
+  part6: ['date-p6-init','date-p6-comp','sig-p6-ge'],
+  part7: ['date-p7-comp','p7-satisfaction','p7-remarks','sig-p7-user'],
+};
+const FIELD_LABELS = {
+  'p1-addr':'Address','p1-name':'Name','p1-contact':'Contact','date-p1':'Complaint date',
+  'p1-desc-a':'Description (a)','date-p1-sign':'Signature date (Part-I)','sig-p1-user':'Signature (Part-I)',
+  'p2-details':'Works details','p2-fy':'Financial year','sig-p2-admin':'Signature (Part-II)',
+  'date-p3-insp':'Inspection date','p3-priority':'Priority','sig-p3-admin':'Signature (Part-III)',
+  'date-p4-receipt':'Receipt date','p4-approval':'Approved / Not','p4-priority':'Priority','p4-funds':'State of funds',
+  'p4-rs-a':'Amount a','p4-rs-b':'Amount b','p4-rs-c':'Amount c','sig-p4-cfa':'Signature (Part-IV)',
+  'date-p5-receipt':'Receipt date','p5-approval':'Principal approval','p5-funds':'Funds status','sig-p5-sso':'Signature (Part-V)',
+  'date-p6-init':'Initiation date','date-p6-comp':'Completion date','sig-p6-ge':'Signature (Part-VI)',
+  'date-p7-comp':'Completion date','p7-satisfaction':'Satisfactory / Not','p7-remarks':'Remarks','sig-p7-user':'Signature (Part-VII)',
+};
+
+/* ==================== Persist draft / submit ==================== */
+async function persistDraft(){
+  if (!currentRequest || !canAct(currentRequest)) return toast(t('permissionDenied'));
+  try {
+    const formData = formDataFromPage();
+    await apiCall('?action=request&id=' + encodeURIComponent(currentRequest.id) + '&op=draft', { method: 'PUT', body: { formData } });
+    currentRequest.formData = formData;
+    toast(t('draftSaved'));
+  } catch(e){ toast('Error: ' + e.message); }
+}
+
+async function submitStep(){
+  if (!currentRequest || !canAct(currentRequest)) return toast(t('permissionDenied'));
+
+  const formData = formDataFromPage();
+  const part = stagePart(currentRequest.currentStep);
+  const required = REQUIRED_BY_STAGE[part] || [];
+  const missing = required.filter(k => {
+    const v = formData[k];
+    if (!v) return true;
+    const plain = String(v).replace(/<[^>]*>/g, '').trim();
+    return plain === '' || plain === '&nbsp;';
+  });
+
+  if (missing.length){
+    const labels = missing.map(k => '• ' + (FIELD_LABELS[k] || k)).join('\n');
+    alert('⚠️ Missing required fields:\n\n' + labels + '\n\nPlease fill these before submitting.');
+    return;
+  }
+
+  if (!confirm(t('submitConfirm'))) return;
+  try {
+    const res = await apiCall('?action=request&id=' + encodeURIComponent(currentRequest.id) + '&op=submit', { method: 'POST', body: { formData } });
+    if (res.autoRejected) toast(t('autoRejected'));
+    else toast(t('stageSubmitted'));
+    switchView('dashboard');
+  } catch(e){ toast('Error: ' + e.message); }
+}
+
+/* ==================== Return / reject / override ==================== */
+function openReason(action){
+  reasonAction = action;
+  $('reasonTitle').textContent = action === 'return' ? t('returnTitle') : action === 'reject' ? t('rejectTitle') : t('overrideTitle');
+  $('reasonText').value = '';
+  $('reasonModal').classList.add('show');
+}
+
+async function executeReason(){
+  const reason = $('reasonText').value.trim();
+  if (!reason) return toast(t('enterReason'));
+  const req = currentRequest;
+  if (!req) return;
+  try {
+    if (reasonAction === 'return'){
+      await apiCall(`?action=request&id=${encodeURIComponent(req.id)}&op=return`, { method:'POST', body:{ reason } });
+    } else if (reasonAction === 'reject'){
+      await apiCall(`?action=request&id=${encodeURIComponent(req.id)}&op=reject`, { method:'POST', body:{ reason } });
+    } else {
+      const target = prompt('Target stage (part1..part7, completed):', 'part1');
+      if (!target) return;
+      await apiCall(`?action=request&id=${encodeURIComponent(req.id)}&op=override`, { method:'POST', body:{ reason, target } });
+    }
+    $('reasonModal').classList.remove('show');
+    toast(t('requestUpdated'));
+    switchView('dashboard');
+  } catch(e){ toast('Error: ' + e.message); }
+}
+
+/* ==================== Audit / backup ==================== */
+async function renderAudit(){
+  if (!isManager()) return;
+  try {
+    const { logs } = await apiCall('?action=audit');
+    $('auditBody').innerHTML = (logs || []).map(l => `
+      <tr><td>${new Date(l.timestamp).toLocaleString()}</td>
+          <td>${esc(l.requestId || '—')}</td>
+          <td>${esc(l.user)}</td>
+          <td>${esc(l.action)}</td>
+          <td>${esc(l.details)}</td></tr>`).join('');
+  } catch(e){ $('auditBody').innerHTML = `<tr><td colspan="5">Error: ${esc(e.message)}</td></tr>`; }
+}
+
+$('exportBtn').addEventListener('click', async () => {
+  if (!isManager()) return;
+  try {
+    const data = await apiCall('?action=export');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `performa-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    $('backupStatus').textContent = 'Backup downloaded.';
+  } catch(e){ $('backupStatus').textContent = 'Failed: ' + e.message; }
+});
+
+/* ==================== Signature ==================== */
+function initSignatureBoxes(){
+  document.querySelectorAll('.sig-box').forEach(box => {
+    if (box.querySelector('canvas')) return;
+    const c = document.createElement('canvas');
+    c.width = box.clientWidth || 200;
+    c.height = box.clientHeight || 40;
+    c.dataset.saved = '0';
+    const p = document.createElement('div');
+    p.className = 'placeholder';
+    p.textContent = 'Click to sign';
+    box.append(c, p);
+    box.addEventListener('click', () => {
+      if (box.classList.contains('locked')) return;
+      activeSigBox = box;
+      openSignature();
+    });
+  });
+}
+
+function openSignature(){
+  $('signatureModal').classList.add('show');
+  signatureCanvas = $('signatureCanvas');
+  const wrap = signatureCanvas.parentElement;
+  signatureCanvas.width = wrap.clientWidth;
+  signatureCanvas.height = wrap.clientHeight;
+  sigCtx = signatureCanvas.getContext('2d');
+  sigCtx.lineWidth = 2;
+  sigCtx.lineCap = 'round';
+  sigCtx.strokeStyle = '#111';
+  sigCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  const old = activeSigBox?.querySelector('canvas');
+  if (old && old.dataset.saved === '1') sigCtx.drawImage(old, 0, 0, signatureCanvas.width, signatureCanvas.height);
+}
+
+function sigPos(e){
+  const r = signatureCanvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * signatureCanvas.width / r.width, y: (e.clientY - r.top) * signatureCanvas.height / r.height };
+}
+function pointerDown(e){
+  if (!activeSigBox || activeSigBox.classList.contains('locked')) return;
+  drawing = true;
+  signatureCanvas.setPointerCapture?.(e.pointerId);
+  const p = sigPos(e);
+  sigCtx.beginPath();
+  sigCtx.moveTo(p.x, p.y);
+}
+function pointerMove(e){ if (!drawing) return; const p = sigPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); }
+function pointerUp(){ drawing = false; }
+
+function saveSignature(){
+  if (!activeSigBox) return;
+  const c = activeSigBox.querySelector('canvas');
+  c.width = activeSigBox.clientWidth || 200;
+  c.height = activeSigBox.clientHeight || 40;
+  c.getContext('2d').drawImage(signatureCanvas, 0, 0, c.width, c.height);
+  c.dataset.saved = '1';
+  activeSigBox.querySelector('.placeholder').style.display = 'none';
+  $('signatureModal').classList.remove('show');
+  toast('Signature added. Save the draft to persist.');
+}
+
+function closeSignature(){ $('signatureModal').classList.remove('show'); activeSigBox = null; }
+
+function uploadSignatureFile(file){
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) return toast('Signature image ≤ 2MB');
+  const img = new Image();
+  img.onload = () => {
+    const tmp = document.createElement('canvas');
+    tmp.width = img.naturalWidth;
+    tmp.height = img.naturalHeight;
+    const tctx = tmp.getContext('2d');
+    tctx.drawImage(img, 0, 0);
+    const data = tctx.getImageData(0, 0, tmp.width, tmp.height);
+    const px = data.data;
+    for (let i = 0; i < px.length; i += 4){
+      const r = px[i], g = px[i+1], b = px[i+2], a = px[i+3];
+      if (a > 0 && r > 220 && g > 220 && b > 220) px[i+3] = 0;
+    }
+    tctx.putImageData(data, 0, 0);
+    if (!signatureCanvas || !sigCtx) return;
+    sigCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    const scale = Math.min(signatureCanvas.width / tmp.width, signatureCanvas.height / tmp.height) * 0.95;
+    const w = tmp.width * scale, h = tmp.height * scale;
+    const x = (signatureCanvas.width - w) / 2, y = (signatureCanvas.height - h) / 2;
+    sigCtx.drawImage(tmp, x, y, w, h);
+    toast(t('sigUploaded'));
+  };
+  img.onerror = () => toast('Could not load image');
+  img.src = URL.createObjectURL(file);
+}
+
+/* ==================== Media ==================== */
+function normalizeMediaUrl(url){
+  if (!url) return '';
+  if (url.startsWith('/uploads/')) return '/officer' + url;
+  if (url.startsWith('uploads/')) return '/officer/' + url;
+  return url;
+}
+
+function renderMedia(list){
+  const grid = $('mediaGrid');
+  grid.innerHTML = '';
+  if (!list || !list.length){
+    grid.innerHTML = `<span class="muted small">${currentLang==='ur'?'کوئی منسلکہ نہیں':'No attachments yet'}</span>`;
+    return;
+  }
+  list.forEach(m => {
+    const thumb = document.createElement('div');
+    thumb.className = 'media-thumb';
+    const url = normalizeMediaUrl(m.url);
+    if (m.type === 'image'){
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = m.originalName || '';
+      thumb.appendChild(img);
+    } else {
+      const v = document.createElement('div');
+      v.className = 'video-icon';
+      v.textContent = '▶';
+      thumb.appendChild(v);
+    }
+    thumb.addEventListener('mouseenter', e => showPreview(m, url, e));
+    thumb.addEventListener('mousemove', movePreview);
+    thumb.addEventListener('mouseleave', hidePreview);
+
+    if (currentUser.role === 'sso' || currentUser.role === 'admin' || m.uploadedBy === currentUser.username){
+      const del = document.createElement('button');
+      del.className = 'media-del';
+      del.textContent = '×';
+      del.onclick = async (e) => {
+        e.stopPropagation();
+        if (!confirm('Delete this attachment?')) return;
+        try {
+          await apiCall(`?action=request-media&id=${encodeURIComponent(currentRequest.id)}&mediaId=${m.id}`, { method: 'DELETE' });
+          const refreshed = await apiCall('?action=request-media-list&id=' + encodeURIComponent(currentRequest.id));
+          currentRequest.media = refreshed.media;
+          renderMedia(refreshed.media);
+          toast(t('mediaDeleted'));
+        } catch(e){ toast('Error: ' + e.message); }
+      };
+      thumb.appendChild(del);
+    }
+    grid.appendChild(thumb);
+  });
+}
+
+function showPreview(m, url, e){
+  const p = $('previewPopup');
+  p.innerHTML = '';
+  if (m.type === 'image'){
+    const img = document.createElement('img');
+    img.src = url;
+    p.appendChild(img);
+  } else {
+    const v = document.createElement('video');
+    v.src = url;
+    v.controls = true;
+    v.muted = true;
+    v.autoplay = true;
+    p.appendChild(v);
+  }
+  p.classList.add('show');
+  movePreview(e);
+}
+function movePreview(e){
+  const p = $('previewPopup');
+  if (!p.classList.contains('show')) return;
+  const x = Math.min(e.clientX + 15, window.innerWidth - 440);
+  const y = Math.min(e.clientY + 15, window.innerHeight - 340);
+  p.style.left = x + 'px';
+  p.style.top = y + 'px';
+}
+function hidePreview(){ $('previewPopup').classList.remove('show'); }
+
+async function uploadMedia(file, kind){
+  if (!currentRequest) return;
+  if (kind === 'image'){
+    if (file.size > 1048576) return toast(t('imageTooBig'));
+    const imgs = (currentRequest.media || []).filter(m => m.type === 'image');
+    if (imgs.length >= 3) return toast(t('maxImages'));
+  } else {
+    if (file.size > 2097152) return toast(t('videoTooBig'));
+    const vids = (currentRequest.media || []).filter(m => m.type === 'video');
+    if (vids.length >= 1) return toast(t('maxVideo'));
+    const dur = await new Promise(res => {
+      const v = document.createElement('video');
+      v.preload = 'metadata';
+      v.onloadedmetadata = () => res(v.duration);
+      v.onerror = () => res(0);
+      v.src = URL.createObjectURL(file);
+    });
+    if (dur > 30.5) return toast(t('videoTooLong'));
+  }
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res = await fetch(`api/index.php?action=request-media&id=${encodeURIComponent(currentRequest.id)}`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-CSRF-Token': csrfToken },
+      body: fd,
+    });
+    const data = await res.json();
+    if (data._csrf) csrfToken = data._csrf;
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    const list = await apiCall('?action=request-media-list&id=' + encodeURIComponent(currentRequest.id));
+    currentRequest.media = list.media;
+    renderMedia(list.media);
+    toast(t('uploadSuccess'));
+  } catch(e){ toast(t('uploadFailed') + ': ' + e.message); }
+}
+
+/* ==================== Part-IV auto-calc ==================== */
+function recalcFunds(){
+  const get = id => parseFloat((document.querySelector(`[data-id="${id}"]`)?.textContent || '0').replace(/[^\d.\-]/g, '')) || 0;
+  const a = get('p4-rs-a'), b = get('p4-rs-b'), c = get('p4-rs-c');
+  const d = a - b - c;
+  const dEl = document.querySelector('[data-id="p4-rs-d"]');
+  if (dEl && dEl.isContentEditable){
+    dEl.textContent = d.toFixed(0);
+    dEl.style.color = d < 0 ? '#dc2626' : '#111';
+  }
+  const warn = $('fundsWarn');
+  if (warn) warn.classList.toggle('hidden', d >= 0);
+}
+
+function wireAutoCalc(){
+  ['p4-rs-a','p4-rs-b','p4-rs-c'].forEach(id => {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (!el) return;
+    el.removeEventListener('blur', recalcFunds);
+    el.addEventListener('blur', recalcFunds);
+  });
+  recalcFunds();
+}
+
+/* ==================== Event wiring ==================== */
+document.addEventListener('click', e => {
+  const open = e.target.closest('[data-open]');
+  if (open) return openRequest(open.dataset.open, false);
+  const view = e.target.closest('[data-viewreq]');
+  if (view) return openRequest(view.dataset.viewreq, true);
+});
+
+document.querySelectorAll('.nav button[data-view]').forEach(b =>
+  b.addEventListener('click', () => switchView(b.dataset.view))
+);
+
+$('setupForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('setupForm').querySelector('button[type=submit]');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="button-spinner"></span> Creating…';
+  $('loginError').textContent = '';
+  try {
+    const p = $('setupPassword').value;
+    if (p !== $('setupPasswordConfirm').value) throw new Error('Passwords do not match.');
+    await apiCall('?action=setup', {
+      method: 'POST',
+      body: {
+        name: $('setupName').value.trim(),
+        contact: $('setupContact').value.trim(),
+        username: $('setupUsername').value.trim().toLowerCase(),
+        password: p,
+      }
+    });
+    $('setupForm').reset();
+    $('setupForm').style.display = 'none';
+    $('firstRunSetup').style.display = 'none';
+    $('loginForm').style.display = 'block';
+    $('setupNote').style.display = 'block';
+    $('loginError').style.color = '#15803d';
+    $('loginError').textContent = 'Super Admin created. Please sign in.';
+  } catch(err){
+    $('loginError').style.color = '#dc2626';
+    $('loginError').textContent = err.message || 'Setup failed.';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+});
+
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('loginForm').querySelector('button[type=submit]');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="button-spinner"></span> Signing in…';
+  $('loginError').textContent = '';
+  try {
+    await login($('loginUser').value.trim().toLowerCase(), $('loginPass').value);
+  } catch(err){
+    $('loginError').textContent = err.message || 'Login failed.';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+});
+
+$('logoutBtn').addEventListener('click', logout);
+$('mobileMenu').addEventListener('click', () => $('sidebar').classList.toggle('mobile-open'));
+$('backEditor').addEventListener('click', () => switchView('dashboard'));
+$('printBtn').addEventListener('click', () => window.print());
+$('saveDraftBtn').addEventListener('click', persistDraft);
+$('submitBtn').addEventListener('click', submitStep);
+$('returnBtn').addEventListener('click', () => openReason('return'));
+$('rejectBtn').addEventListener('click', () => openReason('reject'));
+$('ssoOverrideBtn').addEventListener('click', () => openReason('override'));
+
+$('closeSig').addEventListener('click', closeSignature);
+$('cancelSig').addEventListener('click', closeSignature);
+$('saveSig').addEventListener('click', saveSignature);
+$('clearSig').addEventListener('click', () => sigCtx?.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height));
+$('uploadSigBtn').addEventListener('click', () => $('sigFileInput').click());
+$('sigFileInput').addEventListener('change', e => { if (e.target.files[0]) uploadSignatureFile(e.target.files[0]); e.target.value = ''; });
+
+$('closeReason').addEventListener('click', () => $('reasonModal').classList.remove('show'));
+$('cancelReason').addEventListener('click', () => $('reasonModal').classList.remove('show'));
+$('confirmReason').addEventListener('click', executeReason);
+
+$('signatureCanvas').addEventListener('pointerdown', pointerDown);
+$('signatureCanvas').addEventListener('pointermove', pointerMove);
+$('signatureCanvas').addEventListener('pointerup', pointerUp);
+$('signatureCanvas').addEventListener('pointercancel', pointerUp);
+$('signatureCanvas').addEventListener('pointerleave', pointerUp);
+
+$('uploadImageBtn').addEventListener('click', () => $('imageInput').click());
+$('uploadVideoBtn').addEventListener('click', () => $('videoInput').click());
+$('imageInput').addEventListener('change', e => {
+  const files = [...e.target.files];
+  files.forEach(f => uploadMedia(f, 'image'));
+  e.target.value = '';
+});
+$('videoInput').addEventListener('change', e => {
+  if (e.target.files[0]) uploadMedia(e.target.files[0], 'video');
+  e.target.value = '';
+});
+
+/* ==================== Auto-refresh ==================== */
+function startAutoRefresh(){
+  stopAutoRefresh();
+  autoRefreshTimer = setInterval(() => {
+    if (!currentUser) return;
+    const dashActive = $('view-dashboard').classList.contains('active');
+    if (dashActive) loadDashboard();
+  }, 30000);
+}
+function stopAutoRefresh(){
+  if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+}
+
+/* ==================== Init ==================== */
+(async function init(){
+  const loader = $('appLoader');
+  try {
+    loadLang();
+    initSignatureBoxes();
+    $('newDate').value = new Date().toISOString().slice(0,10);
+    await bootstrap();
+  } catch(e){
+    console.error('Init failed:', e);
+    $('loginError').textContent = 'Init failed: ' + (e.message || 'Unknown');
+  } finally {
+    if (loader){ loader.classList.add('done'); setTimeout(() => loader.remove(), 250); }
+  }
+})();
+</script>
+</body>
+</html>
